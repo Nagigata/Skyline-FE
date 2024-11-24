@@ -1,10 +1,12 @@
 import { useState, useRef, useEffect } from "react";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import Logo from "../../components/Logo";
 import PasswordInput from "../../components/PasswordInput";
 import Input from "../../components/Input";
 import Button from "../../components/Button";
 import ChangePassword from "./ChangePassword";
 import CheckEmailChangePassword from "./CheckEmailChangePassword";
+import GoogleLoginButton from "./GoogleLoginButton";
 import gsap from "gsap";
 import SmallButton from "../../components/SmallButton";
 import Cookies from "js-cookie";
@@ -23,7 +25,6 @@ const validatePassword = (password) => {
 const SignInPage = ({
   handleBackClick,
   setPage,
-  setExpiryDay,
   setSignInKey,
   setUser,
   setJustSignIn,
@@ -79,16 +80,25 @@ const SignInPage = ({
     setRememberMe(event.target.checked);
   };
 
+  const handleGoogleLoginSuccess = (loginData) => {
+    console.log(loginData)
+    console.log(loginData.user)
+    setSignInKey(loginData.signInToken)
+    setUser(loginData.user);
+    setJustSignIn(false);
+    setSignInKey(loginData.signInToken);
+  };
+
   const handleClick = async () => {
     setIsLoading(true);
     setError("");
     try {
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/access/sign-in",
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/user/sign-in",
         {
           method: "POST",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -128,8 +138,7 @@ const SignInPage = ({
         }
         setUser(data.metadata.user);
         setJustSignIn(false);
-        setExpiryDay(data.metadata.expiryDay);
-        setSignInKey(data.metadata.signInKey);
+        setSignInKey(data.metadata.signInToken);
       }
     } catch (error) {
       console.error("Error:", error);
@@ -140,13 +149,13 @@ const SignInPage = ({
   };
 
   return (
-    <div className="bg-black flex flex-col w-full pt-10 border-t-4 border-yellow-500 rounded-lg">
+    <div className="bg-primary flex flex-col w-full pt-10 border-t-4 border-blueColor rounded-lg">
       <Logo />
       <div
         ref={contentRef}
-        className="pt-28 flex flex-col items-center justify-center"
+        className="pt-14 flex flex-col items-center justify-center"
       >
-        <p className="bold text-4xl pb-16 text-gray">Sign in</p>
+        <p className="bold text-4xl pb-8 text-gray">Sign in</p>
         <div className="mt-4">
           <p className="text-left text-gray text-sm ml-2 pb-1">Email</p>
           <Input
@@ -177,6 +186,7 @@ const SignInPage = ({
             Remember me
           </label>
         </div>
+
         <div className="mt-4">
           <SmallButton
             text={"Forgot password?"}
@@ -186,7 +196,7 @@ const SignInPage = ({
             isActive={false}
           />
         </div>
-        <div className="flex justify-center space-x-4 mt-14">
+        <div className="flex justify-center space-x-4 mt-8">
           <Button
             text={isLoading ? "Sending..." : "Continue"}
             handleClick={!isLoading && isValid ? handleClick : () => {}}
@@ -195,6 +205,13 @@ const SignInPage = ({
           <Button text={"Back"} handleClick={handleBackClick} isActive={true} />
         </div>
         {error.length !== 0 && <p className="text-red-500 pt-4">{error}</p>}
+        <div className="w-80">
+          <GoogleLoginButton
+            onLoginSuccess={handleGoogleLoginSuccess}
+            setErrorMessage={setError}
+            setIsLoading={setIsLoading}
+          />
+        </div>
       </div>
     </div>
   );
@@ -223,7 +240,6 @@ const ForgotPasswordPage = ({ handleBackClick }) => {
 
 export default function SignIn({
   handleBackClick,
-  setExpiryDay,
   setSignInKey,
   setUser,
   setJustSignIn,
@@ -233,19 +249,20 @@ export default function SignIn({
     setPage("signin");
   };
   return (
-    <div>
-      {page === "forgotPassword" ? (
-        <ForgotPasswordPage handleBackClick={handleBackSignInClick} />
-      ) : (
-        <SignInPage
-          handleBackClick={handleBackClick}
-          setPage={setPage}
-          setUser={setUser}
-          setSignInKey={setSignInKey}
-          setExpiryDay={setExpiryDay}
-          setJustSignIn={setJustSignIn}
-        />
-      )}
-    </div>
+    <GoogleOAuthProvider clientId={import.meta.env.VITE_GOOGLE_CLIENT_ID}>
+      <div>
+        {page === "forgotPassword" ? (
+          <ForgotPasswordPage handleBackClick={handleBackSignInClick} />
+        ) : (
+          <SignInPage
+            handleBackClick={handleBackClick}
+            setPage={setPage}
+            setUser={setUser}
+            setSignInKey={setSignInKey}
+            setJustSignIn={setJustSignIn}
+          />
+        )}
+      </div>
+    </GoogleOAuthProvider>
   );
 }

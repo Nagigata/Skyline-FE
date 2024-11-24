@@ -41,7 +41,7 @@ const DeleteAccount = ({ user, signInKey, signout }) => {
     setProcessing(true);
     try {
       const signInResponse = await fetch(
-        'https://skn7vgp9-9876.asse.devtunnels.ms/access/sign-in',
+        'https://skn7vgp9-10000.asse.devtunnels.ms/access/sign-in',
         {
           method: 'POST',
           headers: {
@@ -79,7 +79,7 @@ const DeleteAccount = ({ user, signInKey, signout }) => {
         return;
       }
 
-      const deleteResponse = await fetch('https://skn7vgp9-9876.asse.devtunnels.ms/account/delete', {
+      const deleteResponse = await fetch('https://skn7vgp9-10000.asse.devtunnels.ms/account/delete', {
         method: 'DELETE',
         headers: {
           'Content-Type': 'application/json',
@@ -112,7 +112,7 @@ const DeleteAccount = ({ user, signInKey, signout }) => {
 
   return (
     <div className="flex justify-center items-center bg-transparent" style={{ height: 'calc(100vh - 64px)' }}>
-      <div ref={contentRef} className="flex flex-col justify-center items-center bg-black w-[500px] h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-yellow-500">
+      <div ref={contentRef} className="flex flex-col justify-center items-center bg-primary w-[500px] h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-blueColor">
         <h1 className="text-3xl bold text-red-500">Delete Account</h1>
         <p className="text-xs text-zinc-600 mb-14 mt5">Enter your fullname along with your password <br></br> correctly to be processed</p>
         <div>

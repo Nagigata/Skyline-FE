@@ -19,6 +19,7 @@ const ReactBar = ({
   setComment,
   sendMessage,
   sendingComment,
+  handleReportClick,
 }) => {
   const likeRef = useRef(null);
   const loveRef = useRef(null);
@@ -88,7 +89,7 @@ const ReactBar = ({
   }, [isEditable]);
 
   return (
-    <div className="relative fixed bottom-3 w-[400px] flex flex-col justify-center items-center">
+    <div className="relative fixed bottom-3 w-[500px] flex flex-col justify-center items-center">
       {!isCommenting ? (
         <div className="flex space-x-3 items-center justify-center mb-3">
           <div
@@ -223,15 +224,29 @@ const ReactBar = ({
               </p>
             </div>
           </div>
-          <Button
-            text={
-              <img src="/public/assets/images/comment.png" className="h-6" />
-            }
-            handleClick={() => {
-              setIsCommenting((oldV) => !oldV);
-            }}
-            isActive={true}
-          />
+          {!isEditable && (
+            <Button
+              text={
+                <img src="/public/assets/images/comment.png" className="h-6" />
+              }
+              handleClick={() => {
+                setIsCommenting((oldV) => !oldV);
+              }}
+              isActive={true}
+            />
+          )}
+          {!isEditable && (
+            <Button
+              isActive={true}
+              text={
+                <img
+                  className="w-5 mx-[1px]"
+                  src="/public/assets/images/report.png"
+                />
+              }
+              handleClick={() => handleReportClick(feed)}
+            />
+          )}
         </div>
       ) : (
         <div className="flex justify-center items-center space-x-4 mb-3">
@@ -280,27 +295,49 @@ const ReactBar = ({
 
       {isEditable && feed.reactions.length !== 0 && hovered && (
         <div className="absolute bottom-36 bg-zinc-800 bg-opacity-90 rounded-3xl p-2 mb-3 w-[300px]">
-          <p className="text-gray text-sm bold">Reactions:</p>
+          <p className="text-gray text-sm font-semibold">
+            Reactions: {feed.reactions.length}
+          </p>
           <div className="flex flex-col space-y-2 mt-2">
-            {feed.reactions.map((reaction, index) => (
+            {feed.reactions.map((reaction) => (
               <div
-                key={index}
+                key={reaction._id}
                 className="flex items-center justify-between w-full px-3"
               >
+                {/* User Info */}
                 <div className="flex items-center space-x-3">
                   <img
                     src={reaction.userId.profileImageUrl}
-                    className="w-6 rounded-full"
+                    alt={`${reaction.userId.fullname}'s profile`}
+                    className="w-6 h-6 rounded-full object-cover"
                   />
                   <p className="text-gray text-xs">
-                    {reaction.userId.fullname.firstname}
+                    {reaction.userId.fullname}
                   </p>
                 </div>
-                <div className="flex justify-end">
-                  <img
-                    className="w-4"
-                    src={`/public/assets/images/${reaction.icon}.png`}
-                  />
+
+                {/* Reaction Icons */}
+                <div className="flex gap-1">
+                  {Array.isArray(reaction.icon) ? (
+                    // Map through array of icons
+                    reaction.icon.map((icon, iconIndex) => (
+                      <img
+                        key={`${reaction._id}-${iconIndex}`}
+                        className="w-4 h-4"
+                        src={`/public/assets/images/${icon}.png`}
+                        alt={icon}
+                        title={icon}
+                      />
+                    ))
+                  ) : (
+                    // Handle single icon
+                    <img
+                      className="w-4 h-4"
+                      src={`/public/assets/images/${reaction.icon}.png`}
+                      alt={reaction.icon}
+                      title={reaction.icon}
+                    />
+                  )}
                 </div>
               </div>
             ))}
@@ -333,6 +370,7 @@ const ReactBar = ({
           />
         )}
         <SmallTakePhotoButton handleClick={handleTakePhotoBtn} />
+
         {isEditable && (
           <Button
             isActive={true}

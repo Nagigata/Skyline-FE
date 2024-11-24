@@ -6,9 +6,9 @@ import EditFullname from "./Main/EditFullname";
 import EditEmail from "./Main/EditEmail";
 import EditAvatar from "./Main/EditAvatar";
 import EditBirthday from "./Main/EditBirthday";
+import EditCountry from "./Main/EditCountry";
 import UserProfile from "./Main/UserProfile";
 import DeleteAccount from "./Main/DeleteAccount";
-import Search from "./Main/Search";
 import Chat from "./Main/Chat";
 import ChatButton from "../components/ChatButton";
 
@@ -23,20 +23,20 @@ const MainPage = ({
 }) => {
   const [loading, setLoading] = useState(false);
   const [page, setPage] = useState("main");
-  const [searchKey, setSearchKey] = useState("");
-  const [searchResult, setSearchResult] = useState(null);
-  const [searchedKey, setSearchedKey] = useState("");
   const [numberOfNewMessages, setNumberOfNewMessages] = useState(0);
 
   const signout = async () => {
+    console.log(123);
     setLoading(true);
     await signoutHandler();
     setLoading(false);
   };
 
   const unSeenMessage = useCallback((friendChat) => {
-    return friendChat.messages.some(
-      (message) => message.isRead === false && message.receiver._id === user._id
+    console.log(friendChat);
+    return friendChat.conversation.some(
+      (message) =>
+        message.isRead === false && message.receiverId._id === user._id
     );
   }, []);
 
@@ -49,44 +49,6 @@ const MainPage = ({
     setNumberOfNewMessages(count);
   }, [chat]);
 
-  useEffect(() => {
-    const fetchSearchResults = async () => {
-      if (!searchKey) return;
-      setLoading(true);
-      const key = searchKey.replace(/ /g, "%20");
-      try {
-        const response = await fetch(
-          `https://skn7vgp9-9876.asse.devtunnels.ms/search/${key}`,
-          {
-            method: "GET",
-            headers: {
-              "Content-Type": "application/json",
-              "api-key": "ABC-XYZ-WWW",
-              authorization: signInKey,
-              "user-id": user?._id,
-            },
-          }
-        );
-
-        const data = await response.json();
-
-        if (response.status === 200) {
-          setSearchedKey(searchKey);
-          setSearchKey("");
-          setSearchResult(data.metadata);
-        } else {
-          console.error("Error:", data.message);
-        }
-      } catch (error) {
-        console.error("Error:", error);
-      }
-      setLoading(false);
-      setPage("search");
-    };
-
-    fetchSearchResults();
-  }, [searchKey]);
-
   return (
     <div className="bg-zinc-900 w-full h-svh relative flex justify-end flex-col items-center">
       {page !== "chat" && (
@@ -98,12 +60,7 @@ const MainPage = ({
           />
         </div>
       )}
-      <Navbar
-        user={user}
-        setPage={setPage}
-        signoutHandler={signout}
-        setSearchKey={setSearchKey}
-      />
+      <Navbar user={user} setPage={setPage} signoutHandle={signout} />
       {page === "main" && (
         <Main
           user={user}
@@ -139,22 +96,16 @@ const MainPage = ({
       {page === "edit-birthday" && (
         <EditBirthday user={user} signInKey={signInKey} setUser={setUser} />
       )}
+       {page === "edit-country" && (
+        <EditCountry user={user} signInKey={signInKey} setUser={setUser} />
+      )}
       {page === "edit-avatar" && (
         <EditAvatar user={user} signInKey={signInKey} setUser={setUser} />
       )}
       {page === "delete" && (
         <DeleteAccount signout={signout} user={user} signInKey={signInKey} />
       )}
-      {page === "search" && (
-        <Search
-          setLoading={setLoading}
-          searchKey={searchedKey}
-          searchResult={searchResult}
-          user={user}
-          setUser={setUser}
-          signInKey={signInKey}
-        />
-      )}
+
       {loading && <Loading />}
     </div>
   );

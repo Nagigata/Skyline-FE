@@ -4,17 +4,17 @@ import Button from "./Button";
 import FriendLogo from "./FriendLogo";
 
 const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
-  const [description, setDescription] = useState(feed.description);
+  const [description, setDescription] = useState(feed.description || "");
   const [sendTo, setSendTo] = useState(
-    feed.visibility === "everyone" ? [] : feed.visibility
+    feed.visibility === "everyone" ? [] : feed.visibility || []
   );
 
   useEffect(() => {
-    if (editing === false) {
-      setDescription(feed.description);
-      setSendTo(feed.visibility === "everyone" ? [] : feed.visibility);
+    if (editing === false && feed) {
+      setDescription(feed.description || "");
+      setSendTo(feed.visibility === "everyone" ? [] : feed.visibility || []);
     }
-  }, [editing]);
+  }, [editing, feed]);
 
   useEffect(() => {
     setEditDescription(description);
@@ -22,8 +22,8 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
   }, [description, sendTo]);
 
   useEffect(() => {
-    setDescription(feed.description);
-    setSendTo(feed.visibility === "everyone" ? [] : feed.visibility);
+    setDescription(feed.description || "");
+    setSendTo(feed.visibility === "everyone" ? [] : feed.visibility || []);
   }, [feed]);
 
   const formatTime = (time) => {
@@ -59,7 +59,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
   return (
     <div className="justify-center flex items-center bg-transparent h-[calc(100vh_-_64px)] max-h-[calc(100vh_-_64px)]">
       <div
-        className={`flex-col mb-32 space-y-5 flex items-center justify-center rounded-[40px] bg-black w-[500px] max-h-[600px] h-[600px] relative`}
+        className={`flex-col mb-32 space-y-5 flex items-center justify-center rounded-[40px] bg-primary w-[500px] max-h-[600px] h-[600px] relative`}
       >
         <div className="relative">
           <img
@@ -70,7 +70,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
             <input
               className={`absolute bottom-3 left-1/2 transform -translate-x-1/2 outline-none rounded-3xl text-sm  semibold text-center py-3 ${
                 editing
-                  ? "bg-white text-black"
+                  ? "bg-white text-primary"
                   : "bg-zinc-800 text-gray bg-opacity-70"
               }`}
               type="text"
@@ -88,9 +88,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
               <FriendLogo
                 key={-1}
                 user={{
-                  fullname: {
-                    firstname: "All",
-                  },
+                  fullname: "All",
                   profileImageUrl: "/public/assets/images/friend.png",
                 }}
                 isActive={sendTo.length === 0}
@@ -110,7 +108,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
             ))}
           </div>
         ) : (
-          <div className="flex flex items-center justify-center mt-3 space-x-3">
+          <div className=" flex items-center justify-center mt-3 space-x-3">
             <div className="flex items-center justify-center">
               <img
                 src={feed.userId.profileImageUrl}
@@ -119,7 +117,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
               <p className="text-sm text-gray bold">
                 {feed.userId._id.toString() === user._id.toString()
                   ? "You"
-                  : feed.userId.fullname.firstname}
+                  : feed.userId.fullname}
               </p>
             </div>
             <p className="text-sm semibold text-[#827C77] ml-2">

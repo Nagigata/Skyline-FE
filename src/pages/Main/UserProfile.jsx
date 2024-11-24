@@ -5,7 +5,8 @@ import DeleteButton from "../../components/DeleteButton";
 import SmallProfileBar from "../../components/SmallProfileBar";
 import AcceptButton from "../../components/AcceptButton";
 import Popup from "../../components/Popup";
-
+import { useFriendSocket } from "../../hooks/useFriendSocket";
+import { useProfileSocket } from "../../hooks/useProfileSocket";
 const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
@@ -17,9 +18,10 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
   const sentInviteDivRef = useRef(null);
 
   const numberOfFriends = user.friendList.length;
-  const numberOfInvites = user.receivedInviteList.length;
-  const numberOfSentInvites = user.sentInviteList.length;
-
+  const numberOfInvites = user.friendInvites.length;
+  //const numberOfSentInvites = user.sentInviteList.length;
+  useFriendSocket({ user, setUser });
+  useProfileSocket({ user, setUser });
   const friendList = user.friendList.map((friend) => (
     <div key={friend._id.toString()} className="relative">
       <SmallProfileBar user={friend} />
@@ -29,9 +31,9 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
     </div>
   ));
 
-  const inviteList = user.receivedInviteList.map((invite) => (
+  const inviteList = user.friendInvites.map((invite) => (
     <div key={invite._id.toString()} className="relative">
-      <SmallProfileBar user={invite} />
+      <SmallProfileBar user={invite.sender} />
       <div className="ml-5 absolute right-2 top-[7px] flex">
         <AcceptButton clickHandler={() => handleAcceptInvite(invite._id)} />
         <div className="ml-2"></div>
@@ -42,14 +44,14 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
     </div>
   ));
 
-  const sentInviteList = user.sentInviteList.map((invite) => (
-    <div key={invite._id.toString()} className="relative">
-      <SmallProfileBar user={invite} />
-      <div className="ml-5 absolute right-2 top-[7px]">
-        <DeleteButton clickHandler={() => handleRemoveSentInvite(invite._id)} />
-      </div>
-    </div>
-  ));
+  // const sentInviteList = user.sentInviteList.map((invite) => (
+  //   <div key={invite._id.toString()} className="relative">
+  //     <SmallProfileBar user={invite} />
+  //     <div className="ml-5 absolute right-2 top-[7px]">
+  //       <DeleteButton clickHandler={() => handleRemoveSentInvite(invite._id)} />
+  //     </div>
+  //   </div>
+  // ));
 
   useEffect(() => {
     const tl = gsap.timeline();
@@ -81,21 +83,17 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
     setShowPopup(true);
   };
 
-  const handleAcceptInvite = async (friendId) => {
+  const handleAcceptInvite = async (inviteId) => {
     setLoading(true);
     try {
-      console.log(friendId);
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/account/friend/accept",
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/user/invite/accept/${inviteId}`,
         {
-          method: "POST",
+          method: "PATCH",
           headers: {
-            "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
           },
-          body: JSON.stringify({ friendId: friendId }),
         }
       );
 
@@ -103,29 +101,42 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
 
       if (response.status === 200) {
         setUser(data.metadata);
+        // Optional: Add success notification
+        console.log("Friend invite accepted successfully");
       } else {
-        console.error("Error:", data.message);
+        // Handle different error cases based on API response
+        switch (response.status) {
+          case 400:
+            if (data.message === "Invalid Request") {
+              console.error("User is not receiver");
+            } else if (data.message === "Processed Resource") {
+              console.error("Friend invite was already processed");
+            }
+            break;
+          case 404:
+            console.error("Friend invite not found");
+            break;
+          default:
+            console.error("Error:", data.message);
+        }
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Network or other error:", error);
     }
     setLoading(false);
   };
 
-  const handleRemoveReceivedInvite = async (friendId) => {
+  const handleRemoveReceivedInvite = async (inviteId) => {
     setLoading(true);
     try {
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/account/friend/remove-invite-receiver",
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/user/invite/remove/${inviteId}`,
         {
-          method: "POST",
+          method: "DELETE",
           headers: {
-            "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
           },
-          body: JSON.stringify({ friendId: friendId }),
         }
       );
 
@@ -133,41 +144,26 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
 
       if (response.status === 200) {
         setUser(data.metadata);
+        console.log("Friend invite removed successfully");
       } else {
-        console.error("Error:", data.message);
-      }
-    } catch (error) {
-      console.error("Error:", error);
-    }
-    setLoading(false);
-  };
-
-  const handleRemoveSentInvite = async (friendId) => {
-    setLoading(true);
-    try {
-      const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/account/friend/remove-invite",
-        {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
-            authorization: signInKey,
-            "user-id": user?._id,
-          },
-          body: JSON.stringify({ friendId: friendId }),
+        // Handle different error cases
+        switch (response.status) {
+          case 400:
+            if (data.message === "Invalid Request") {
+              console.error("User is not receiver");
+            } else if (data.message === "Processed Resource") {
+              console.error("Friend invite was already processed");
+            }
+            break;
+          case 404:
+            console.error("Friend invite not found");
+            break;
+          default:
+            console.error("Error:", data.message);
         }
-      );
-
-      const data = await response.json();
-
-      if (response.status === 200) {
-        setUser(data.metadata);
-      } else {
-        console.error("Error:", data.message);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Network or other error:", error);
     }
     setLoading(false);
   };
@@ -178,16 +174,13 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
 
     try {
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/account/friend/remove",
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/user/friend/delete/${selectedFriendId}`,
         {
-          method: "POST",
+          method: "DELETE",
           headers: {
-            "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
           },
-          body: JSON.stringify({ friendId: selectedFriendId }),
         }
       );
 
@@ -195,11 +188,15 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
 
       if (response.status === 200) {
         setUser(data.metadata);
+        console.log("Friend deleted successfully");
+      } else if (response.status === 400) {
+        // Handle case where users are not friends
+        console.error("Users are not friends");
       } else {
         console.error("Error:", data.message);
       }
     } catch (error) {
-      console.error("Error:", error);
+      console.error("Network or other error:", error);
     }
     setLoading(false);
   };
@@ -217,19 +214,22 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
         ref={contentRef}
         className="flex flex-col justify-start items-center"
       >
-        <p className="text-xl bold text-yellow-500 my-4">
+        <p className="text-xl bold text-blueColor my-4">
           Let's see your wonderful profile
         </p>
         <div className="mb-5"></div>
-        <div ref={profileBarRef} className="">
+        <div
+          ref={profileBarRef}
+          className="flex flex-col items-center flex-start space-y-2 w-full h-full p-2"
+        >
           <ProfileBar user={user} />
         </div>
         <div className="mt-4 flex space-x-7">
           <div
             ref={friendDivRef}
-            className="lg:w-[450px] md:w-[335px] h-[600px] flex flex-col justify-start items-center rounded-3xl bg-black"
+            className="lg:w-[450px] md:w-[335px] h-[600px] flex flex-col justify-start items-center rounded-3xl bg-primary"
           >
-            <p className="text-yellow-600 text-base semibold mt-4">
+            <p className="text-blueColor text-base semibold mt-4">
               {numberOfFriends} Friends
             </p>
             <div className="flex flex-col items-center flex-start space-y-2 w-full h-full overflow-y-auto p-2">
@@ -239,18 +239,18 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
           <div className="flex flex-col space-y-6">
             <div
               ref={receivedInviteDivRef}
-              className="lg:w-[450px] md:w-[335px] h-[288px] flex flex-col justify-start items-center rounded-3xl bg-black"
+              className="lg:w-[450px] md:w-[335px] h-[600px] flex flex-col justify-start items-center rounded-3xl bg-primary"
             >
-              <p className="text-yellow-600 text-base semibold mt-4">
+              <p className="text-blueColor text-base semibold mt-4">
                 {numberOfInvites} Received invites
               </p>
               <div className="flex flex-col items-center flex-start space-y-2 w-full h-full overflow-y-auto p-2">
                 {inviteList}
               </div>
             </div>
-            <div
+            {/* <div
               ref={sentInviteDivRef}
-              className="lg:w-[450px] md:w-[335px] h-[288px] flex flex-col justify-start items-center rounded-3xl bg-black"
+              className="lg:w-[450px] md:w-[335px] h-[288px] flex flex-col justify-start items-center rounded-3xl bg-primary"
             >
               <p className="text-yellow-600 text-base semibold mt-4">
                 {numberOfSentInvites} Sent invites
@@ -258,7 +258,7 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
               <div className="flex flex-col items-center flex-start space-y-2 w-full h-full overflow-y-auto p-2">
                 {sentInviteList}
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

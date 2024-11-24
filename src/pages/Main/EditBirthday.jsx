@@ -56,14 +56,13 @@ export default function EditBirthday({ user, setUser, signInKey }) {
     setError("");
     try {
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/account/birthday",
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/user/birthday",
         {
           method: "PATCH",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             "Content-Type": "application/json",
             authorization: signInKey,
-            "user-id": user?._id,
           },
           body: JSON.stringify({
             birthday: getDate(birthday),
@@ -100,9 +99,9 @@ export default function EditBirthday({ user, setUser, signInKey }) {
     >
       <div
         ref={contentRef}
-        className="bg-black w-[500px] h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-yellow-500 flex flex-col justify-center items-center"
+        className="bg-primary w-[500px] h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-blueColor flex flex-col justify-center items-center"
       >
-        <p className="bold text-2xl pb-7 text-yellow-500">
+        <p className="bold text-2xl pb-7 text-blueColor">
           What's your birthday?
         </p>
         <div className="mt-2 relative">

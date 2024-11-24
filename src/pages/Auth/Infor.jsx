@@ -5,7 +5,7 @@ import Input from "../../components/Input";
 import Button from "../../components/Button";
 import { DatePicker } from "@nextui-org/react";
 import gsap from "gsap";
-
+import { iso31661 } from "iso-3166";
 const validatePassword = (password) => {
   const regex =
     /^(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?])(?=.{8,})/;
@@ -13,20 +13,17 @@ const validatePassword = (password) => {
 };
 
 const getDate = ({ day, month, year }) => {
-  if (day.toString().length === 1) {
-    day = "0" + day.toString();
-  }
-  if (month.toString().length === 1) {
-    month = "0" + month.toString();
-  }
-  return `${day}/${month}/${year}`;
+  const paddedDay = day.toString().padStart(2, "0");
+  const paddedMonth = month.toString().padStart(2, "0");
+  return `${paddedDay}/${paddedMonth}/${year}`;
 };
 
 const Infor = ({ verifiedEmail, setPage }) => {
-  const [firstname, setFirstname] = useState("");
-  const [lastname, setLastname] = useState("");
+  const [fullname, setFullname] = useState("");
+  const [country, setCountry] = useState("");
   const [password, setPassword] = useState("");
   const [birthday, setBirthday] = useState(null);
+  const [code, setCode] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState("");
@@ -34,7 +31,12 @@ const Infor = ({ verifiedEmail, setPage }) => {
   const [isLoading, setIsLoading] = useState(false);
 
   const contentRef = useRef(null);
-
+  const countryList = Object.entries(iso31661)
+    .map(([alpha3, country]) => ({
+      alpha3: country.alpha3,
+      name: country.name,
+    }))
+    .sort((a, b) => a.name.localeCompare(b.name));
   useEffect(() => {
     const content = contentRef.current;
     gsap.fromTo(content, { opacity: 0 }, { opacity: 1, duration: 1, delay: 1 });
@@ -42,8 +44,8 @@ const Infor = ({ verifiedEmail, setPage }) => {
 
   const checkValid = () => {
     if (
-      firstname.length !== 0 &&
-      lastname.length !== 0 &&
+      fullname.length !== 0 &&
+      country.length !== 0 &&
       birthday !== null &&
       validatePassword(password) &&
       password === confirmPassword
@@ -56,14 +58,14 @@ const Infor = ({ verifiedEmail, setPage }) => {
 
   useEffect(() => {
     checkValid();
-  }, [firstname, lastname, password, confirmPassword, birthday]);
+  }, [fullname, country, password, confirmPassword, birthday]);
 
-  const handleFirstnameChange = (event) => {
-    setFirstname(event.target.value);
+  const handleFullnameChange = (event) => {
+    setFullname(event.target.value);
   };
 
-  const handleLastnameChange = (event) => {
-    setLastname(event.target.value);
+  const handleCountryChange = (event) => {
+    setCountry(event.target.value);
   };
 
   const handlePasswordChange = (event) => {
@@ -74,57 +76,72 @@ const Infor = ({ verifiedEmail, setPage }) => {
     setConfirmPassword(event.target.value);
   };
 
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
+  };
+
   const handleClick = async () => {
     setIsLoading(true);
     setError("");
+    console.log({
+      code: parseInt(code),
+      email: verifiedEmail,
+      fullname: fullname,
+      password: password,
+      country: country,
+      birthday: getDate(birthday),
+    });
     try {
       const response = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/access/sign-up",
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/user/sign-up",
         {
           method: "POST",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
+            code: parseInt(code),
             email: verifiedEmail,
-            firstname: firstname,
-            lastname: lastname,
-            birthday: getDate(birthday),
+            fullname: fullname,
             password: password,
+            country: country,
+            birthday: getDate(birthday),
           }),
         }
       );
+
       const data = await response.json();
-      if (!response.ok) {
-        if (data.message === "API key is required") {
-          setError("API key is required.");
-        } else if (data.message === "API key is incorrect") {
-          setError("API key is incorrect.");
-        } else if (data.message === "Data is invalid") {
-          setError("Data is invalid.");
-        } else if (data.message === "New password does not meet requirements") {
-          setError("Your password does not meet requirements.");
-        } else {
-          setError("An unknown error occurred.");
-        }
-        setIsSuccessfully(false);
-      } else {
+      console.log(response.status);
+      if (response.status === 201) {
+        console.log("oke");
         setIsSuccessfully(true);
         setTimeout(() => {
           setPage("signin");
         }, 2000);
+      } else if (response.status === 400) {
+        console.log(data.message);
+        if (data.message === "Incorrect Resource") {
+          setError("The provided information is incorrect.");
+        } else if (data.message === "Expired Resource") {
+          setError("Your verification code has expired. Please try again.");
+        }
+        setIsSuccessfully(false);
+      } else {
+        setError("An unknown error occurred.");
+        setIsSuccessfully(false);
       }
     } catch (error) {
       console.error("Error:", error);
       setError("Failed to sign up. Please try again.");
+      setIsSuccessfully(false);
     } finally {
       setIsLoading(false);
     }
   };
 
   return (
-    <div className="bg-black flex flex-col w-full pt-10 border-t-4 border-yellow-500 rounded-lg">
+    <div className="bg-primary flex flex-col w-full pt-10 border-t-4 border-blueColor rounded-lg">
       <Logo />
       <div
         ref={contentRef}
@@ -134,31 +151,56 @@ const Infor = ({ verifiedEmail, setPage }) => {
           We need your information!
         </p>
         <div className="mt-2">
-          <p className="text-left text-gray text-sm ml-2 pb-1">Firstname</p>
+          <p className="text-left text-gray text-sm ml-2 pb-1">Full Name</p>
           <Input
-            text={"Firstname"}
-            handleChange={handleFirstnameChange}
-            name={"firstname"}
-            value={firstname}
+            text={"Full Name"}
+            handleChange={handleFullnameChange}
+            name={"fullname"}
+            value={fullname}
           />
         </div>
-        <div className="mt-2">
-          <p className="text-left text-gray text-sm ml-2 pb-1">Lastname</p>
-          <Input
-            text={"Lastname"}
-            handleChange={handleLastnameChange}
-            name={"lastname"}
-            value={lastname}
-          />
+        <div className="mt-2 w-80">
+          {" "}
+          {/* Added fixed width */}
+          <p className="text-left text-gray text-sm ml-2 pb-1">Birthday</p>
+          <div className="relative w-full">
+            {" "}
+            {/* Added container with relative positioning */}
+            <DatePicker
+              value={birthday}
+              onChange={setBirthday}
+              className="w-full bg-[#29282C] text-sm text-gray rounded-2xl p-1 focus:outline-none focus:ring-2 medium"
+              placeholder="dd/mm/yyyy"
+            />
+          </div>
         </div>
         <div className="mt-2 relative">
-          <p className="text-left text-gray text-sm ml-2 pb-1">Birthday</p>
-          <DatePicker
-            value={birthday}
-            onChange={setBirthday}
-            className="bg-[#29282C] text-sm text-gray rounded-2xl p-3 w-80 focus:outline-none focus:ring-2"
+          <p className="text-left text-gray text-sm ml-2 pb-1">Country</p>
+          <select
+            value={country}
+            onChange={handleCountryChange}
+            className="bg-[#29282C] text-sm text-gray rounded-2xl p-3 w-80 focus:outline-none focus:ring-2 flex items-center justify-center"
+          >
+            <option value="">Select a country</option>
+            {countryList.map(({ alpha3, name }) => (
+              <option key={alpha3} value={alpha3}>
+                {name} ({alpha3})
+              </option>
+            ))}
+          </select>
+        </div>
+        <div className="mt-2">
+          <p className="text-left text-gray text-sm ml-2 pb-1">Code</p>
+
+          <Input
+            text={"Verification Code"}
+            handleChange={handleCodeChange}
+            name={"code"}
+            value={code}
           />
-          <div className="absolute bg-[#29282C] w-6 h-6 top-10 right-8"></div>
+          <p className="text-left text-zinc-500 text-xs ml-2 pt-2">
+            Code has been sent to {verifiedEmail}
+          </p>
         </div>
 
         <div className="mt-2">
@@ -181,7 +223,7 @@ const Infor = ({ verifiedEmail, setPage }) => {
             value={confirmPassword}
           />
         </div>
-        <p className="pt-3 text-xs text-zinc-600 pb-10">
+        <p className="pt-3 text-xs text-zinc-600 pb-5">
           Your password must have at least 8 characters, including <br />
           <span className="text-zinc-400">special characters</span>,{" "}
           <span className="text-zinc-400">capital letters</span>, and{" "}

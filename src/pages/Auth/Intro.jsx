@@ -29,7 +29,7 @@ export default function Intro({ handleSignUpClick, handleSignInClick }) {
     }, []);
 
     return (
-        <div className="bg-black flex flex-col w-full pt-10 border-t-4 border-yellow-500 rounded-lg">
+        <div className="bg-primary flex flex-col w-full pt-10 border-t-4 border-blueColor rounded-lg">
             <Logo />
             <div ref={contentRef} className="flex space-x-40 justify-center items-top pt-40">
                 <img className="w-[200px] pt-5" src="/public/assets/images/intro1.png" alt="Intro" />

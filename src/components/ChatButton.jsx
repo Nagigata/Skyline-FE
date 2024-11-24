@@ -24,7 +24,7 @@ const ChatButton = ({ numberOfNewMessage, clickHandler, isLoadingChat }) => {
     <div
       ref={buttonRef}
       className={`relative rounded-3xl p-3 ${
-        isLoadingChat ? "bg-zinc-800" : "bg-yellow-500 cursor-pointer"
+        isLoadingChat ? "bg-zinc-800" : "bg-blueColor cursor-pointer"
       }`}
       onClick={isLoadingChat ? () => {} : clickHandler}
     >

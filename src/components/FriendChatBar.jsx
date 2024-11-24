@@ -59,20 +59,20 @@ const FriendChatBar = ({
     >
       <div
         className={`rounded-full border-2 ${
-          isNew ? "border-yellow-500" : "border-zinc-500"
+          isNew ? "border-blueColor" : "border-zinc-500"
         }`}
       >
         <img
           src={imageUrl}
           className="w-8 h-8 rounded-full m-1"
-          alt={fullname.firstname}
+          alt={fullname}
         />
       </div>
       <div className="flex flex-col space-y-[4px]">
         <div className="flex justify-start items-center space-x-4">
-          <p
-            className={`text-[12px] ${isNew ? "bold" : "semibold"}`}
-          >{`${fullname.firstname} ${fullname.lastname}`}</p>
+          <p className={`text-[12px] ${isNew ? "bold" : "semibold"}`}>
+            {fullname}
+          </p>
           {sendTime && <p className="regular text-[10px]">{currentTime}</p>}
         </div>
         {message && (

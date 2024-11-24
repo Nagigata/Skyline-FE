@@ -8,7 +8,7 @@ const SmallProfileBar = ({ user }) => {
         src={user.profileImageUrl}
         alt="Profile"
       />
-      <p className="medium text-xs text-gray">{`${user.fullname.firstname} ${user.fullname.lastname}`}</p>
+      <p className="medium text-xs text-gray">{user.fullname}</p>
     </div>
   );
 };

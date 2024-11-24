@@ -16,7 +16,7 @@ body {
   background: #000;
   border-color: #3b3b3b;
   user-select: none;
-  background-color: black;
+  background-color: #22272e;
   font-family: "Quicksand", sans-serif;
 }
 
@@ -43,7 +43,7 @@ body {
 }
 
 .btn {
-  background-color: #252428;
+  background-color: #2A2F34;
   color: #9c9899;
   padding: 15px 15px;
   border-radius: 30px;
@@ -52,14 +52,14 @@ body {
 }
 
 .btn-sm {
-  background-color: #252428;
+  background-color: #2A2F34;
   padding: 7px 10px;
   border-radius: 15px;
   cursor: pointer;
 }
 
 .btn.isActive {
-  background-color: #ffb700;
-  color: black;
+  background-color: #19adc8;
+  color: #ffffff;
   cursor: pointer;
 }

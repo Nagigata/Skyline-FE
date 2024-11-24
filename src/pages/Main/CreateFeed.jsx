@@ -75,18 +75,25 @@ const ImageFromCamera = ({
         canvas.toBlob(
           async (blob) => {
             const formData = new FormData();
-            formData.append("image", blob, "avatar.jpg");
+            formData.append("image", blob, "avatar.png");
             formData.append("description", description);
-            const visibility =
-              sendTo.length === 0 ? "everyone" : sendTo.join(", ");
-            formData.append("visibility", visibility);
+
+            if (sendTo.length === 0) {
+              user.friendList.forEach((friend) => {
+                formData.append("visibility[]", friend._id);
+              });
+            } else {
+              sendTo.forEach((id) => {
+                formData.append("visibility[]", id);
+              });
+            }
 
             const apiResponse = await fetch(
-              "https://skn7vgp9-9876.asse.devtunnels.ms/feed/create",
+              "https://skn7vgp9-10000.asse.devtunnels.ms/api/feed",
               {
                 method: "POST",
                 headers: {
-                  "api-key": "ABC-XYZ-WWW",
+                  "x-api-key": "abc-xyz-www",
                   authorization: signInKey,
                   "user-id": user?._id,
                 },
@@ -143,13 +150,13 @@ const ImageFromCamera = ({
     <div className="justify-center flex items-center bg-transparent h-[calc(100vh_-_64px)] max-h-[calc(100vh_-_64px)]">
       <div
         ref={contentRef}
-        className="bg-black w-[500px] h-[700px] p-8 rounded-3xl shadow-2xl border-t-2 border-yellow-500 flex flex-col items-center"
+        className="bg-primary w-[500px] h-[700px] p-8 rounded-3xl shadow-2xl border-t-2 border-blueColor flex flex-col items-center"
       >
-        <p className="text-base text-yellow-500 font-bold">
+        <p className="text-base text-blueColor font-bold">
           {photoTaken ? "Send to..." : "Let's create your new feed!"}
         </p>
         <div className="relative mt-8 w-[400px] h-[400px] z-0">
-          <div className="absolute z-0 inset-0 rounded-[80px] border-[1px] border-yellow-500 overflow-hidden">
+          <div className="absolute z-0 inset-0 rounded-[80px] border-[1px] border-blueColor overflow-hidden">
             {turnOffCamera ? (
               <img
                 src={"/public/assets/images/noneCamera.png"}
@@ -219,9 +226,7 @@ const ImageFromCamera = ({
                 <FriendLogo
                   key={-1}
                   user={{
-                    fullname: {
-                      firstname: "All",
-                    },
+                    fullname: "All",
                     profileImageUrl: "/public/assets/images/friend.png",
                   }}
                   isActive={sendTo.length === 0 ? true : false}
@@ -379,19 +384,26 @@ const ImageFromDevice = ({
         canvas.toBlob(resolve, "image/png", 1)
       );
 
-      // Tải ảnh đã cắt lên server
       const formData = new FormData();
       formData.append("image", blob, "avatar.png");
       formData.append("description", description);
-      const visibility = sendTo.length === 0 ? "everyone" : sendTo.join(", ");
-      formData.append("visibility", visibility);
+
+      if (sendTo.length === 0) {
+        user.friendList.forEach((friend) => {
+          formData.append("visibility[]", friend._id);
+        });
+      } else {
+        sendTo.forEach((id) => {
+          formData.append("visibility[]", id);
+        });
+      }
 
       const apiResponse = await fetch(
-        "https://skn7vgp9-9876.asse.devtunnels.ms/feed/create",
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/feed",
         {
           method: "POST",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
             "user-id": user?._id,
           },
@@ -410,7 +422,6 @@ const ImageFromDevice = ({
     } catch (error) {
       console.error("Error saving photo:", error);
       setProcess(false);
-      // Xử lý lỗi nếu cần, ví dụ: hiển thị thông báo lỗi cho người dùng
     }
   };
 
@@ -418,12 +429,12 @@ const ImageFromDevice = ({
     <div className="flex items-center justify-center bg-transparent z-10 h-[calc(100vh_-_64px)] max-h-[calc(100vh_-_64px)]">
       <div
         ref={contentRef}
-        className=" bg-black lg:w-[900px] md:w-[750px] lg:h-[700px] md:h-[650px] p-3 rounded-3xl shadow-2xl border-t-4 border-yellow-500 flex flex-col items-center"
+        className=" bg-primary lg:w-[900px] md:w-[750px] lg:h-[700px] md:h-[650px] p-3 rounded-3xl shadow-2xl border-t-4 border-blueColor flex flex-col items-center"
       >
-        <p className="text-2xl text-yellow-500 bold">
+        <p className="text-2xl text-blueColor bold">
           {completedCrop ? "Send to..." : "Let's create your new feed!"}
         </p>
-        <div className="relative mt-8 lg:w-[750px] md:w-[600px] lg:h-[500px] md:h-[400px] bg-zinc-800 rounded-[80px] border-[3px] border-yellow-500 overflow-hidden">
+        <div className="relative mt-8 lg:w-[750px] md:w-[600px] lg:h-[500px] md:h-[400px] bg-zinc-800 rounded-[80px] border-[3px] border-blueColor overflow-hidden">
           {imgSrc && (
             <ReactCrop
               crop={crop}
@@ -512,9 +523,7 @@ const ImageFromDevice = ({
               <FriendLogo
                 key={-1}
                 user={{
-                  fullname: {
-                    firstname: "All",
-                  },
+                  fullname: "All",
                   profileImageUrl: "/public/assets/images/friend.png",
                 }}
                 isActive={sendTo.length === 0 ? true : false}

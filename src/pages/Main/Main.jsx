@@ -5,10 +5,9 @@ import gsap from "gsap";
 import CreateFeed from "./CreateFeed";
 import Feed from "../../components/Feed";
 import ReactBar from "../../components/ReactBar";
-import IO from "socket.io-client";
 
-const socket = IO("https://skn7vgp9-9876.asse.devtunnels.ms");
-
+import { useFeedSocket } from "../../hooks/useFeedSocket";
+import { useChatSocket } from "../../hooks/useChatSocket";
 const isVisible = (visibility, userId) => {
   if (Array.isArray(visibility)) {
     return visibility.includes(userId);
@@ -40,23 +39,9 @@ const Main = ({ user, signInKey, signout, setChat }) => {
     fullname: "Everyone",
   });
   const [turnOffCamera, setTurnOffCamera] = useState(false);
-
-  useEffect(() => {
-    console.log(user && feeds.length > 0);
-    if (user) {
-      const handleSocketEvent = async (data) => {
-        console.log(data);
-      };
-
-      socket.on("feed", handleSocketEvent);
-
-      // Hủy đăng ký sự kiện khi component unmount
-      return () => {
-        socket.off("feed", handleSocketEvent);
-      };
-    }
-  }, [user]);
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  useFeedSocket({ user, feeds, setFeeds });
+  useChatSocket({ user, setChat });
   useEffect(() => {
     if (page === 0) {
       setTurnOffCamera(false);
@@ -78,41 +63,54 @@ const Main = ({ user, signInKey, signout, setChat }) => {
     gsap.fromTo(content, { opacity: 0 }, { opacity: 1, duration: 1 });
   }, []);
 
-  const sendMessage = async (friendId, comment, feedId) => {
+  const sendMessage = async (receiverId, comment, feedId) => {
     try {
       setSendingComment(true);
+
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/message/${friendId}`,
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/message",
         {
           method: "POST",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
             "Content-Type": "application/json",
-            "user-id": user?._id,
           },
           body: JSON.stringify({
-            message: comment,
-            feedId: feedId,
+            receiverId,
+            content: comment,
+            feedId,
           }),
         }
       );
+
       const data = await response.json();
-      if (response.ok) {
-        console.log(data);
-        setChat((chat) => {
-          return chat.map((friendChat) => {
-            if (friendChat.friendId === friendId) {
-              friendChat.messages.push(data.metadata);
+
+      if (response.status === 201) {
+        console.log("Comment sent successfully:", data);
+        console.log();
+        // Update chat state correctly using the receiverId
+        setChat((prevChat) => {
+          console.log(prevChat);
+          if (!prevChat) return prevChat;
+
+          return prevChat.map((friendChat) => {
+            if (friendChat.friendId === receiverId) {
+              return {
+                ...friendChat,
+                conversation: [...friendChat.conversation, data.metadata],
+              };
             }
             return friendChat;
           });
         });
       } else {
         console.error("Failed to send comment:", data.message);
+        throw new Error(data.message || "Failed to send comment");
       }
     } catch (error) {
       console.error("Error sending comment:", error);
+      throw error;
     } finally {
       setIsCommenting(false);
       setComment("");
@@ -122,16 +120,17 @@ const Main = ({ user, signInKey, signout, setChat }) => {
 
   const fetchFeeds = async (page) => {
     if (maxFeed === -1 && page >= feeds.length - 10 && !loading) {
+      console.log(feeds.length);
+      console.log(signInKey);
       try {
         if (feeds.length == 0) setLoading(true);
         const response = await fetch(
-          `https://skn7vgp9-9876.asse.devtunnels.ms/feed/everyone?skip=${feeds.length}`,
+          `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/everyone?skip=${feeds.length}`,
           {
             method: "GET",
             headers: {
-              "api-key": "ABC-XYZ-WWW",
+              "x-api-key": "abc-xyz-www",
               authorization: signInKey,
-              "user-id": user?._id,
             },
           }
         );
@@ -140,8 +139,18 @@ const Main = ({ user, signInKey, signout, setChat }) => {
         if (response.ok) {
           if (data.metadata.length == 0) {
             setMaxFeed(feeds.length);
+            console.log(1);
           } else {
-            setFeeds((prevV) => [...prevV, ...data.metadata]);
+            setFeeds((prevFeeds) => {
+              const newFeeds = data.metadata.filter(
+                (newFeed) =>
+                  !prevFeeds.some(
+                    (existingFeed) => existingFeed._id === newFeed._id
+                  )
+              );
+              return [...prevFeeds, ...newFeeds];
+            });
+            console.log(2);
           }
         } else {
           if (data.message === "User ID does not match token") {
@@ -160,15 +169,15 @@ const Main = ({ user, signInKey, signout, setChat }) => {
   const fetchCertainFeeds = async (page, userId) => {
     if (maxFeed === -1 && page >= feeds.length - 10 && !loading) {
       try {
+        console.log(feeds.length);
         if (feeds.length == 0) setLoading(true);
         const response = await fetch(
-          `https://skn7vgp9-9876.asse.devtunnels.ms/feed/certain/${userId}?skip=${feeds.length}`,
+          `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/certain/${userId}?skip=${feeds.length}`,
           {
             method: "GET",
             headers: {
-              "api-key": "ABC-XYZ-WWW",
+              "x-api-key": "abc-xyz-www",
               authorization: signInKey,
-              "user-id": user?._id,
             },
           }
         );
@@ -265,6 +274,7 @@ const Main = ({ user, signInKey, signout, setChat }) => {
   }, [page]);
 
   const handleReloadFeeds = () => {
+    console.log("reload feed");
     setEditing(false);
     setPage(0);
     setFeeds([]);
@@ -293,16 +303,23 @@ const Main = ({ user, signInKey, signout, setChat }) => {
   };
 
   const handleReactFeed = async (feedId, icon) => {
+    // Validate icon type
+    console.log(icon);
+    const validIcons = ["like", "haha", "sad", "angry", "wow", "love"];
+    if (!validIcons.includes(icon)) {
+      console.error("Invalid reaction icon");
+      return;
+    }
+
     try {
       setLoading(true);
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/feed/${feedId}`,
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/reaction/${feedId}`,
         {
           method: "POST",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
@@ -310,27 +327,104 @@ const Main = ({ user, signInKey, signout, setChat }) => {
           }),
         }
       );
+
       const data = await response.json();
+
       if (response.ok) {
-        setFeeds((preFeeds) =>
-          preFeeds.map((f) => {
-            if (f._id.toString() === feedId) {
+        // Update the feeds state with the new reaction data
+        setFeeds((prevFeeds) =>
+          prevFeeds.map((feed) => {
+            if (feed._id === feedId) {
               return data.metadata;
-            } else return f;
+            }
+            return feed;
           })
         );
       } else {
         if (data.message === "User ID does not match token") {
           signout();
+        } else if (data.message === "Existing resource") {
+          // Handle case where reaction already exists
+          console.error("Reaction already exists");
+        } else if (data.message === "Not found resource") {
+          console.error("Feed not found");
+        } else {
+          console.error("Failed to react to feed:", data.message);
         }
-        console.error("Failed to fetch feeds:", data.message);
-        setShowReloadPopup(true);
       }
     } catch (error) {
-      console.error("Error fetching feeds:", error);
+      console.error("Error reacting to feed:", error);
       setShowReloadPopup(true);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const [reportState, setReportState] = useState({
+    isOpen: false,
+    target: null,
+    step: "type",
+    type: null,
+    reason: null,
+  });
+
+  const handleReportClick = (feed) => {
+    setReportState({
+      isOpen: true,
+      target: feed,
+      step: "type",
+      type: null,
+      reason: null,
+    });
+  };
+
+  const closeReport = () => {
+    setReportState({
+      isOpen: false,
+      target: null,
+      step: "type",
+      type: null,
+      reason: null,
+    });
+  };
+
+  const handleReportSubmit = async () => {
+    try {
+      setIsSubmitting(true);
+      setLoading(true);
+
+      const apiEndpoint =
+        reportState.type === "user"
+          ? `https://skn7vgp9-10000.asse.devtunnels.ms/api/report/user/${reportState.target.userId._id}`
+          : `https://skn7vgp9-10000.asse.devtunnels.ms/api/report/feed/${reportState.target._id}`;
+
+      const response = await fetch(apiEndpoint, {
+        method: "POST",
+        headers: {
+          "x-api-key": "abc-xyz-www",
+          authorization: signInKey,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          reason: reportState.reason,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (response.ok) {
+        closeReport();
+      } else {
+        if (data.message === "User ID does not match token") {
+          signout();
+        } else {
+        }
+      }
+    } catch (error) {
+      console.error("Error submitting report:", error);
+    } finally {
+      setLoading(false);
+      setIsSubmitting(false);
     }
   };
 
@@ -338,41 +432,47 @@ const Main = ({ user, signInKey, signout, setChat }) => {
     try {
       setLoading(true);
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/feed/${currentFeed._id}`,
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/${currentFeed._id}`,
         {
           method: "PATCH",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
             "Content-Type": "application/json",
           },
           body: JSON.stringify({
             description: editDescription,
             visibility:
-              editSendTo.length === 0 ? "everyone" : editSendTo.join(", "),
+              editSendTo.length === 0
+                ? user.friendList.map((friend) => friend._id)
+                : editSendTo, // Send as array directly
           }),
         }
       );
+
       const data = await response.json();
+
       if (response.ok) {
-        setFeeds((preFeeds) =>
-          preFeeds.map((f) => {
-            if (f._id.toString() === currentFeed._id) {
+        setFeeds((prevFeeds) =>
+          prevFeeds.map((feed) => {
+            if (feed._id === currentFeed._id) {
               return data.metadata;
-            } else return f;
+            }
+            return feed;
           })
         );
+        setEditing(false);
       } else {
         if (data.message === "User ID does not match token") {
           signout();
+        } else {
+          // Show error message to user
+          console.error("Failed to update feed:", data.message);
         }
-        console.error("Failed to fetch feeds:", data.message);
       }
     } catch (error) {
-      console.error("Error fetching feeds:", error);
+      console.error("Error updating feed:", error);
     } finally {
-      setEditing(false);
       setLoading(false);
     }
   };
@@ -389,35 +489,40 @@ const Main = ({ user, signInKey, signout, setChat }) => {
     try {
       setProcessing(true);
       setLoading(true);
+
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/feed/${currentFeed._id}`,
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/${currentFeed._id}`,
         {
           method: "DELETE",
           headers: {
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
           },
         }
       );
+
       const data = await response.json();
+
       if (response.ok) {
-        setFeeds((preFeeds) =>
-          preFeeds.filter((f) => f._id.toString() !== currentFeed._id)
+        // Remove the deleted feed from state
+        setFeeds((prevFeeds) =>
+          prevFeeds.filter((feed) => feed._id !== currentFeed._id)
         );
-        setMaxFeed((preV) => preV - 1);
+        setMaxFeed((prev) => prev - 1);
+        setShowPopup(false);
       } else {
         if (data.message === "User ID does not match token") {
           signout();
+        } else {
+          // Show error message to user
+          console.error("Failed to delete feed:", data.message);
         }
-        console.error("Failed to fetch feeds:", data.message);
       }
     } catch (error) {
-      console.error("Error fetching feeds:", error);
+      console.error("Error deleting feed:", error);
     } finally {
       setLoading(false);
       setProcessing(false);
-      setShowPopup(false);
     }
   };
 
@@ -480,14 +585,14 @@ const Main = ({ user, signInKey, signout, setChat }) => {
           <div className=" space-y-5">
             <Button
               isActive={!loading && page !== 0}
-              text={<p className="text-black bold text-2xl px-1">↑</p>}
+              text={<p className="text-primary bold text-2xl px-1">↑</p>}
               handleClick={
                 !loading && page !== 0 ? () => handleScroll(-1) : () => {}
               }
             />
             <Button
               isActive={!loading && (page !== maxFeed || maxFeed === -1)}
-              text={<p className="text-black bold text-2xl px-1">↓</p>}
+              text={<p className="text-primary bold text-2xl px-1">↓</p>}
               handleClick={
                 !loading && (page !== maxFeed || maxFeed === -1)
                   ? () => handleScroll(1)
@@ -500,7 +605,7 @@ const Main = ({ user, signInKey, signout, setChat }) => {
         {!loading && (
           <Button
             isActive={!loading}
-            text={<p className="text-black bold text-2xl px-1">↻</p>}
+            text={<p className="text-primary bold text-2xl px-1">↻</p>}
             handleClick={!loading ? handleReloadFeeds : () => {}}
           />
         )}
@@ -530,13 +635,14 @@ const Main = ({ user, signInKey, signout, setChat }) => {
             setComment={setComment}
             sendMessage={sendMessage}
             sendingComment={sendingComment}
+            handleReportClick={handleReportClick}
           />
         </div>
       )}
       {showPopup && (
         <div className="z-20">
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
-            <div className="bg-black rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-yellow-500 ">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-primary bg-opacity-75">
+            <div className="bg-primary rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-blueColor ">
               <p className="mt-8 mb-4 text-gray bold text-lg">
                 Do you want to delete this feed?
               </p>
@@ -558,8 +664,8 @@ const Main = ({ user, signInKey, signout, setChat }) => {
       )}
       {showReloadPopup && (
         <div className="z-20">
-          <div className="fixed inset-0 flex items-center justify-center z-50 bg-black bg-opacity-75">
-            <div className="bg-black rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-yellow-500 ">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-primary bg-opacity-75">
+            <div className="bg-primary rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-blueColor ">
               <p className="mt-8 mb-4 text-gray bold text-lg">
                 This feed is currently unavailable, Please reload to update
                 feeds!
@@ -574,6 +680,159 @@ const Main = ({ user, signInKey, signout, setChat }) => {
                   }}
                 />
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+      {reportState.isOpen && (
+        <div className="z-20">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-primary bg-opacity-75">
+            <div className="bg-primary rounded-3xl w-[400px] p-6 bg-opacity-1 shadow-2xl shadow-blueColor">
+              <h2 className="text-lg font-bold mb-4">
+                {reportState.step === "type" &&
+                  "What would you like to report?"}
+                {reportState.step === "reason" &&
+                  `Select a reason for reporting the ${reportState.type}`}
+                {reportState.step === "confirm" && "Confirm Report"}
+              </h2>
+
+              {/* Step 1: Report Type Selection */}
+              {reportState.step === "type" && (
+                <div className="space-y-4">
+                  <div className="flex justify-center space-x-4">
+                    <Button
+                      text="Report User"
+                      isActive={true}
+                      handleClick={() =>
+                        setReportState((prev) => ({
+                          ...prev,
+                          type: "user",
+                          step: "reason",
+                        }))
+                      }
+                    />
+                    <Button
+                      text="Report Feed"
+                      isActive={true}
+                      handleClick={() =>
+                        setReportState((prev) => ({
+                          ...prev,
+                          type: "feed",
+                          step: "reason",
+                        }))
+                      }
+                    />
+                  </div>
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      text="Cancel"
+                      isActive={true}
+                      handleClick={closeReport}
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 2: Reason Selection */}
+              {reportState.step === "reason" && (
+                <div className="space-y-4">
+                  {reportState.type === "user" ? (
+                    <div className="flex justify-center space-x-4">
+                      <Button
+                        text="Inappropriate Feeds"
+                        isActive={true}
+                        handleClick={() =>
+                          setReportState((prev) => ({
+                            ...prev,
+                            reason: 0,
+                            step: "confirm",
+                          }))
+                        }
+                      />
+                      <Button
+                        text="Offending Others"
+                        isActive={true}
+                        handleClick={() =>
+                          setReportState((prev) => ({
+                            ...prev,
+                            reason: 1,
+                            step: "confirm",
+                          }))
+                        }
+                      />
+                    </div>
+                  ) : (
+                    <div className="flex justify-center space-x-4">
+                      <Button
+                        text="Sensitive Image"
+                        isActive={true}
+                        handleClick={() =>
+                          setReportState((prev) => ({
+                            ...prev,
+                            reason: 0,
+                            step: "confirm",
+                          }))
+                        }
+                      />
+                      <Button
+                        text="Inappropriate Words"
+                        isActive={true}
+                        handleClick={() =>
+                          setReportState((prev) => ({
+                            ...prev,
+                            reason: 1,
+                            step: "confirm",
+                          }))
+                        }
+                      />
+                    </div>
+                  )}
+                  <div className="flex justify-center mt-4">
+                    <Button
+                      text="Back"
+                      isActive={true}
+                      handleClick={() =>
+                        setReportState((prev) => ({
+                          ...prev,
+                          step: "type",
+                          type: null,
+                        }))
+                      }
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* Step 3: Confirmation */}
+              {reportState.step === "confirm" && (
+                <div className="space-y-4">
+                  <p className="mb-4">
+                    Are you sure you want to report this {reportState.type} for:
+                    <br />
+                    <span className="font-bold">
+                      {reportState.type === "user"
+                        ? reportState.reason === 0
+                          ? "Inappropriate Feeds"
+                          : "Offending Others"
+                        : reportState.reason === 0
+                        ? "Sensitive Image"
+                        : "Inappropriate Words"}
+                    </span>
+                  </p>
+                  <div className="flex justify-center space-x-4">
+                    <Button
+                      text={isSubmitting ? "Processing..." : "Submit Report"}
+                      isActive={!isSubmitting}
+                      handleClick={handleReportSubmit}
+                    />
+                    <Button
+                      text="Cancel"
+                      isActive={true}
+                      handleClick={closeReport}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
           </div>
         </div>

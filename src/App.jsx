@@ -2,18 +2,20 @@ import { useState, useEffect } from "react";
 import "./App.css";
 import Auth from "./pages/Auth";
 import MainPage from "./pages/MainPage";
+import LandingPage from "./components/AddFriend";
 import Cookies from "js-cookie";
 import IO from "socket.io-client";
+import { useSearchParams } from "react-router-dom";
 
-const socket = IO("https://skn7vgp9-9876.asse.devtunnels.ms");
+const socket = IO("https://skn7vgp9-10005.asse.devtunnels.ms");
 
 function App() {
+  const [searchParams] = useSearchParams();
   const [firstLoad, setFirstLoad] = useState(true);
   const [auth, setAuth] = useState(false);
   const [user, setUser] = useState(JSON.parse(Cookies.get("user") || null));
   const [chat, setChat] = useState(JSON.parse(null));
   const [signInKey, setSignInKey] = useState(Cookies.get("signInKey") || null);
-  const [expiryDay, setExpiryDay] = useState(Cookies.get("expiryDay") || null);
   const [error, setError] = useState(null);
   const [isLoadingChat, setIsLoadingChat] = useState(true);
   const [justSignIn, setJustSignIn] = useState(false);
@@ -21,13 +23,9 @@ function App() {
   useEffect(() => {
     console.log({ error });
   }, [error]);
-
+  console.log(user, chat, signInKey);
   useEffect(() => {
-    if (auth && (!user || !chat || !signInKey || !expiryDay)) {
-      signoutHandler();
-    }
-    //expiryday: 2024-08-17T04:14:26.302Z
-    else if (auth && Date.now() > new Date(expiryDay).getTime()) {
+    if (auth && (!user || !chat || !signInKey)) {
       signoutHandler();
     }
   }, []);
@@ -35,34 +33,25 @@ function App() {
   useEffect(() => {
     if (user) {
       Cookies.set("user", JSON.stringify(user), {
-        expires: new Date(expiryDay),
         secure: true,
         sameSite: "Strict",
       });
     }
     if (signInKey) {
       Cookies.set("signInKey", signInKey, {
-        expires: new Date(expiryDay),
         secure: true,
         sameSite: "Strict",
       });
     }
-    if (expiryDay) {
-      Cookies.set("expiryDay", expiryDay, {
-        expires: new Date(expiryDay),
-        secure: true,
-        sameSite: "Strict",
-      });
-    }
-  }, [user, signInKey, expiryDay]);
+  }, [user, signInKey]);
 
   useEffect(() => {
-    if (user && signInKey && expiryDay) {
+    if (user && signInKey) {
       setAuth(true);
     } else {
       setAuth(false);
     }
-  }, [user, signInKey, expiryDay]);
+  }, [user, signInKey]);
 
   useEffect(() => {
     (async () => {
@@ -110,7 +99,7 @@ function App() {
           setChat((chat) => {
             return chat.map((friendChat) => {
               if (friendChat.friendId === infor.senderId) {
-                friendChat.messages.push(infor.message);
+                friendChat.conversation.push(infor.message);
               }
               return friendChat;
             });
@@ -173,17 +162,22 @@ function App() {
     }
   }, [user, signInKey]);
 
+  const hasLandingParams = Boolean(
+    searchParams.get("_id") &&
+      searchParams.get("fullname") &&
+      searchParams.get("profileImageUrl")
+  );
+
   const getUserInfor = async () => {
     try {
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/search/user/${user._id}`,
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/user`,
         {
           method: "GET",
           headers: {
+            "x-api-key": "abc-xyz-www",
             "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
             authorization: signInKey,
-            "user-id": user?._id,
           },
         }
       );
@@ -199,20 +193,25 @@ function App() {
   const getChat = async () => {
     try {
       const response = await fetch(
-        `https://skn7vgp9-9876.asse.devtunnels.ms/message/all`,
+        "https://skn7vgp9-10000.asse.devtunnels.ms/api/message/all",
         {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            "api-key": "ABC-XYZ-WWW",
+            "x-api-key": "abc-xyz-www",
             authorization: signInKey,
-            "user-id": user?._id,
           },
         }
       );
+
       const data = await response.json();
-      console.log(data);
-      return data.metadata;
+
+      if (data.status === 200) {
+        console.log("Chat data:", data);
+        return data.metadata;
+      } else {
+        throw new Error(data.message || "Failed to get chat messages");
+      }
     } catch (error) {
       setError(error);
       return null;
@@ -220,47 +219,35 @@ function App() {
   };
 
   const signoutHandler = async () => {
-    try {
-      await fetch("https://skn7vgp9-9876.asse.devtunnels.ms/access/sign-out", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "api-key": "ABC-XYZ-WWW",
-          authorization: signInKey,
-          "user-id": user?._id,
-        },
-      });
-      Cookies.remove("user");
-      Cookies.remove("signInKey");
-      Cookies.remove("expiryDay");
-      setSignInKey(null);
-      setExpiryDay(null);
-      setUser(null);
-      setChat(null);
-      setError(null);
-      setAuth(false);
-    } catch (error) {
-      setError(error);
-    }
+    Cookies.remove("user");
+    Cookies.remove("signInKey");
+    setSignInKey(null);
+    setUser(null);
+    setChat(null);
+    setError(null);
+    setAuth(false);
   };
 
   return (
     <div>
       {auth ? (
-        <MainPage
-          user={user}
-          setUser={setUser}
-          signInKey={signInKey}
-          signoutHandler={signoutHandler}
-          chat={chat}
-          setChat={setChat}
-          isLoadingChat={isLoadingChat}
-        />
+        hasLandingParams ? (
+          <LandingPage user={user} setUser={setUser} signInKey={signInKey} />
+        ) : (
+          <MainPage
+            user={user}
+            setUser={setUser}
+            signInKey={signInKey}
+            signoutHandler={signoutHandler}
+            chat={chat}
+            setChat={setChat}
+            isLoadingChat={isLoadingChat}
+          />
+        )
       ) : (
         <Auth
           setUser={setUser}
           setSignInKey={setSignInKey}
-          setExpiryDay={setExpiryDay}
           setJustSignIn={setJustSignIn}
         />
       )}

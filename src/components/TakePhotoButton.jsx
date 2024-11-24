@@ -30,7 +30,7 @@ const TakePhotoButton = ({ handleClick }) => {
   };
 
   return (
-    <div className="border-4 w-20 h-20 border-yellow-500 rounded-full">
+    <div className="border-4 w-20 h-20 border-blueColor rounded-full">
       <div
         ref={buttonRef}
         className="m-1 bg-white rounded-full w-16 h-16 cursor-pointer"

@@ -3,13 +3,9 @@ import Intro from "./Auth/Intro";
 import SignUp from "./Auth/SignUp";
 import SignIn from "./Auth/SignIn";
 
-export default function Auth({
-  setUser,
-  setSignInKey,
-  setExpiryDay,
-  setJustSignIn,
-}) {
+export default function Auth({ setUser, setSignInKey, setJustSignIn }) {
   const [page, setPage] = useState("intro");
+
   const handleSignUpClick = () => {
     setPage("signup");
   };
@@ -35,7 +31,6 @@ export default function Auth({
           handleBackClick={handleBackClick}
           setUser={setUser}
           setSignInKey={setSignInKey}
-          setExpiryDay={setExpiryDay}
           setJustSignIn={setJustSignIn}
         />
       )}

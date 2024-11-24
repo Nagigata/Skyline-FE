@@ -3,10 +3,33 @@ import FriendChatBar from "./FriendChatBar";
 
 const ChatSidebar = ({ chat, selectedFriendId, setSelectedFriendId, user }) => {
   const unSeenMessage = useCallback((friendChat) => {
-    return friendChat.messages.some(
-      (message) => message.isRead === false && message.receiver._id === user._id
+    return friendChat.conversation.some(
+      (message) =>
+        message.isRead === false && message.receiverId._id === user._id
     );
   }, []);
+
+  const getMessageDetails = (friendChat) => {
+    const friend = user.friendList.find((f) => f._id === friendChat.friendId);
+    if (friendChat.conversation.length === 0) {
+      return {
+        imageUrl: friend.profileImageUrl,
+        fullname: friend.fullname,
+      };
+    }
+
+    const lastMessage =
+      friendChat.conversation[friendChat.conversation.length - 1];
+
+    console.log(friendChat.friendId);
+    console.log(user.friendList);
+    return {
+      imageUrl: friend.profileImageUrl,
+      fullname: friend.fullname,
+      message: lastMessage.content,
+      sendTime: lastMessage.createdAt,
+    };
+  };
 
   return (
     <div className="h-[calc(100vh_-_60px)] max-h-[calc(100vh_-_60px)] w-[250px] max-w-[250px] bg-zinc-900">
@@ -15,6 +38,8 @@ const ChatSidebar = ({ chat, selectedFriendId, setSelectedFriendId, user }) => {
       </div>
       <div className="h-[calc(100vh_-_110px)] max-h-[calc(100vh_-_60px)] w-[250px] max-w-[250px] overflow-hidden overflow-y-auto flex flex-col justify-start items-center p-2 pl-[20px]">
         {chat.map((friendChat) => {
+          const details = getMessageDetails(friendChat);
+
           return (
             <div
               key={friendChat.friendId}
@@ -23,30 +48,15 @@ const ChatSidebar = ({ chat, selectedFriendId, setSelectedFriendId, user }) => {
                 setSelectedFriendId(friendChat.friendId);
               }}
             >
-              {friendChat.messages.length !== 0 ? (
-                <FriendChatBar
-                  id={friendChat.friendId}
-                  imageUrl={friendChat.friendImageUrl}
-                  fullname={friendChat.friendFullname}
-                  isNew={unSeenMessage(friendChat)}
-                  selectedFriendId={selectedFriendId}
-                  message={
-                    friendChat.messages[friendChat.messages.length - 1].content
-                  }
-                  sendTime={
-                    friendChat.messages[friendChat.messages.length - 1]
-                      .createdAt
-                  }
-                />
-              ) : (
-                <FriendChatBar
-                  id={friendChat.friendId}
-                  imageUrl={friendChat.friendImageUrl}
-                  fullname={friendChat.friendFullname}
-                  isNew={unSeenMessage(friendChat)}
-                  selectedFriendId={selectedFriendId}
-                />
-              )}
+              <FriendChatBar
+                id={friendChat.friendId}
+                imageUrl={details.imageUrl}
+                fullname={details.fullname}
+                isNew={unSeenMessage(friendChat)}
+                selectedFriendId={selectedFriendId}
+                message={details.message}
+                sendTime={details.sendTime}
+              />
             </div>
           );
         })}

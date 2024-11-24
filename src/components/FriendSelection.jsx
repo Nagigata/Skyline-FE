@@ -97,7 +97,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                   <img
                     className="w-8 h-8 rounded-full mr-4"
                     src={user.profileImageUrl}
-                    alt={`${user.fullname.firstname} ${user.fullname.lastname}`}
+                    alt={user.fullname} 
                   />
                   <p className="text-gray medium text-[13px] truncate w-[calc(100% - 100px)]">
                     You
@@ -118,7 +118,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                     onClick={() => {
                       setSelectedUser({
                         id: friend._id,
-                        fullname: `${friend.fullname.firstname} ${friend.fullname.lastname}`,
+                        fullname: friend.fullname,
                       });
                       handleClick();
                     }}
@@ -127,10 +127,10 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                       <img
                         className="w-8 h-8 rounded-full mr-4"
                         src={friend.profileImageUrl}
-                        alt={`${friend.fullname.firstname} ${friend.fullname.lastname}`}
+                        alt={friend.fullname}
                       />
                       <p className="text-gray medium text-[13px] truncate w-[calc(100% - 100px)]">
-                        {friend.fullname.firstname} {friend.fullname.lastname}
+                        {friend.fullname}
                       </p>
                     </div>
                     <img
