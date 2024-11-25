@@ -89,7 +89,7 @@ const Feed = ({ feed, user, editing, setEditDescription, setEditSendTo }) => {
                 key={-1}
                 user={{
                   fullname: "All",
-                  profileImageUrl: "/public/assets/images/friend.png",
+                  profileImageUrl: "assets/images/friend.png",
                 }}
                 isActive={sendTo.length === 0}
               />

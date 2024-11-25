@@ -8,6 +8,9 @@ import ReactBar from "../../components/ReactBar";
 
 import { useFeedSocket } from "../../hooks/useFeedSocket";
 import { useChatSocket } from "../../hooks/useChatSocket";
+import { useFriendSocket } from "../../hooks/useFriendSocket";
+import { useProfileSocket } from "../../hooks/useProfileSocket";
+
 const isVisible = (visibility, userId) => {
   if (Array.isArray(visibility)) {
     return visibility.includes(userId);
@@ -16,7 +19,7 @@ const isVisible = (visibility, userId) => {
   }
 };
 
-const Main = ({ user, signInKey, signout, setChat }) => {
+const Main = ({ user, setUser, signInKey, signout, setChat }) => {
   const contentRef = useRef(null);
   const reactBarRef = useRef(null);
   const [feeds, setFeeds] = useState([]);
@@ -40,8 +43,11 @@ const Main = ({ user, signInKey, signout, setChat }) => {
   });
   const [turnOffCamera, setTurnOffCamera] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  
   useFeedSocket({ user, feeds, setFeeds });
   useChatSocket({ user, setChat });
+  useFriendSocket({ user, setUser });
+  useProfileSocket({ user, setUser });
   useEffect(() => {
     if (page === 0) {
       setTurnOffCamera(false);

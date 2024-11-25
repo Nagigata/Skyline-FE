@@ -81,7 +81,7 @@ const Navbar = ({ user, setPage, signoutHandle }) => {
         <img
           ref={logoRef}
           className="w-8"
-          src="/public/assets/images/logo.png"
+          src="assets/images/logo.png"
           alt="Logo"
         />
         <p ref={nameRef} className="text-white font-bold text-2xl pl-4">

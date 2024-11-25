@@ -13,7 +13,7 @@ const Logo = () => {
     }, []);
     return (
         <div className="w-fdiv flex justify-center items-center">
-            <img ref={logoRef} className="w-[50px]" src="/public/assets/images/logo.png" alt="Logo" />
+            <img ref={logoRef} className="w-[50px]" src="assets/images/logo.png" alt="Logo" />
             <p ref={titleRef} className="text-[#c3c6fd] bold text-5xl pl-4">Skyline</p>
         </div>
     )

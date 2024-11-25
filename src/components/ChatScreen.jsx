@@ -346,17 +346,17 @@ const ChatScreen = ({ chat, selectedFriendId, setChat, user, signInKey }) => {
                       <FeedChat
                         feed={message.feedId}
                         user={user}
-                        friend={{
-                          friendId: selectedFriendId,
-                          friendImageUrl:
-                            message.senderId._id === user._id
-                              ? message.receiverId.profileImageUrl
-                              : message.senderId.profileImageUrl,
-                          friendFullname:
-                            message.senderId._id === user._id
-                              ? message.receiverId.fullname
-                              : message.senderId.fullname,
-                        }}
+                        // friend={{
+                        //   friendId: selectedFriendId,
+                        //   friendImageUrl:
+                        //     message.senderId._id == user._id
+                        //       ? message.senderId.profileImageUrl
+                        //       : message.receiverId.profileImageUrl,
+                        //   friendFullname:
+                        //     message.senderId._id == user._id
+                        //       ? message.senderId.fullname
+                        //       : message.receiverId.fullname,
+                        // }}
                         createdAt={message.createdAt}
                         senderId={message.senderId._id}
                       />

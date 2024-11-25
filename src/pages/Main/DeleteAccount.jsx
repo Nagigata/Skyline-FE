@@ -6,14 +6,14 @@ import Cookies from 'js-cookie';
 import PasswordInput from '../../components/PasswordInput';
 
 const DeleteAccount = ({ user, signInKey, signout }) => {
-  const [fullname, setFullname] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState(false);
+  const [code, setCode] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [success, setSuccess] = useState(false);
+  const [step, setStep] = useState(1); 
   const [error, setError] = useState('');
+  const [timeRemaining, setTimeRemaining] = useState(0);
 
   const contentRef = useRef(null);
+  const timerRef = useRef(null);
 
   useEffect(() => {
     const content = contentRef.current;
@@ -21,120 +21,166 @@ const DeleteAccount = ({ user, signInKey, signout }) => {
   }, []);
 
   useEffect(() => {
-    if (fullname === `${user.fullname.firstname} ${user.fullname.lastname}` && password.length !== 0) {
-      setConfirm(true);
-    } else {
-      setConfirm(false);
-    }
-  }, [fullname, password]);
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+  }, []);
 
-  const handleChange = (event) => {
-    setFullname(event.target.value);
+  const startCountdown = () => {
+    setTimeRemaining(300); 
+    timerRef.current = setInterval(() => {
+      setTimeRemaining((prev) => {
+        if (prev <= 1) {
+          clearInterval(timerRef.current);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
   };
 
-  const handlePasswordChange = (event) => {
-    setPassword(event.target.value);
+  const formatTime = (seconds) => {
+    const minutes = Math.floor(seconds / 60);
+    const remainingSeconds = seconds % 60;
+    return `${minutes}:${remainingSeconds < 10 ? '0' : ''}${remainingSeconds}`;
   };
 
-  const deleteAccountHandler = async () => {
+  const sendDeletionCode = async () => {
     setError('');
     setProcessing(true);
     try {
-      const signInResponse = await fetch(
-        'https://skn7vgp9-10000.asse.devtunnels.ms/access/sign-in',
+      const response = await fetch(
+        'https://skn7vgp9-10000.asse.devtunnels.ms/api/user/delete/check',
         {
           method: 'POST',
           headers: {
-            'api-key': 'ABC-XYZ-WWW',
+            'x-api-key': 'abc-xyz-www',
+            'authorization': signInKey,
             'Content-Type': 'application/json',
           },
-          body: JSON.stringify({
-            email: user.email,
-            password: password
-          }),
         }
       );
 
-      if (!signInResponse.ok) {
-        const signInData = await signInResponse.json();
-        switch (signInData.message) {
-          case 'API key is required':
-            setError('API key is required.');
-            break;
-          case 'API key is incorrect':
-            setError('API key is incorrect.');
-            break;
-          case 'Data is required':
-            setError('Data is required.');
-            break;
-          case 'Email is not registered':
-            setError('Email is not registered.');
-            break;
-          case 'Password is incorrect':
-            setError('Password is incorrect.');
-            break;
-          default:
-            setError('An unknown error occurred.');
-        }
-        return;
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep(2);
+        startCountdown();
+        setProcessing(false);
+      } else {
+        setError(data.message || 'Failed to send deletion code');
+        setProcessing(false);
       }
-
-      const deleteResponse = await fetch('https://skn7vgp9-10000.asse.devtunnels.ms/account/delete', {
-        method: 'DELETE',
-        headers: {
-          'Content-Type': 'application/json',
-          'api-key': 'ABC-XYZ-WWW',
-          'authorization': signInKey,
-          'user-id': user?._id
-        }
-      });
-
-      if (!deleteResponse.ok) {
-        const deleteData = await deleteResponse.json();
-        setError(deleteData.message || 'Failed to delete account.');
-        return;
-      }
-
-      setSuccess(true);
-      setTimeout(() => {
-        Cookies.remove('rememberMeEmail');
-        Cookies.remove('rememberMePassword');
-        signout();
-      }, 2000);
-
     } catch (error) {
       console.error('Error:', error);
-      setError('An error occurred while deleting the account.');
+      setError('An error occurred while sending deletion code');
+      setProcessing(false);
+    }
+  };
+
+  const deleteAccount = async () => {
+    setError('');
+    setProcessing(true);
+    try {
+      const response = await fetch(
+        `https://skn7vgp9-10000.asse.devtunnels.ms/api/user?code=${code}`,
+        {
+          method: 'DELETE',
+          headers: {
+            'x-api-key': 'abc-xyz-www',
+            'authorization': signInKey,
+          },
+        }
+      );
+
+      const data = await response.json();
+
+      if (response.ok) {
+        setStep(3);
+        setTimeout(() => {
+          Cookies.remove('rememberMeEmail');
+          Cookies.remove('rememberMePassword');
+          signout();
+        }, 2000);
+      } else {
+        setError(data.message || 'Failed to delete account');
+      }
+    } catch (error) {
+      console.error('Error:', error);
+      setError('An error occurred while deleting the account');
     } finally {
       setProcessing(false);
     }
   };
 
+  const renderContent = () => {
+    switch (step) {
+      case 1:
+        return (
+          <>
+            <h1 className="text-3xl bold text-red-500">Delete Account</h1>
+            <p className="text-xs text-zinc-600 mb-14 mt-5 text-center">
+              Click the button below to send a verification code to delete your account
+            </p>
+            <Button
+              text={processing ? "Sending..." : "Send Deletion Code"} 
+              handleClick={sendDeletionCode} 
+              isActive={!processing}
+            />
+          </>
+        );
+      
+      case 2:
+        return (
+          <>
+            <h1 className="text-3xl bold text-red-500">Verify Deletion</h1>
+            <p className="text-xs text-zinc-600 mb-5 mt-5 text-center">
+              Enter the verification code sent to {user.email}
+            </p>
+            <p className="text-sm text-zinc-600 mb-5">
+              Time remaining: {formatTime(timeRemaining)}
+            </p>
+            <Input
+              text={'Verification Code'}
+              handleChange={(e) => setCode(e.target.value)}
+              name={'code'}
+              value={code}
+              type="number"
+            />
+            <div className='mt-10'></div>
+            <Button
+              text={processing ? "Deleting..." : "Confirm Delete Account"} 
+              handleClick={deleteAccount} 
+              isActive={!processing && code.length > 0 && timeRemaining > 0}
+            />
+          </>
+        );
+      
+      case 3:
+        return (
+          <>
+            <h1 className="text-3xl bold text-green-500">Account Deleted</h1>
+            <p className="text-base text-zinc-600 mt-5 text-center">
+              Your account has been successfully deleted. Goodbye!
+            </p>
+          </>
+        );
+      
+      default:
+        return null;
+    }
+  };
+
   return (
     <div className="flex justify-center items-center bg-transparent" style={{ height: 'calc(100vh - 64px)' }}>
-      <div ref={contentRef} className="flex flex-col justify-center items-center bg-primary w-[500px] h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-blueColor">
-        <h1 className="text-3xl bold text-red-500">Delete Account</h1>
-        <p className="text-xs text-zinc-600 mb-14 mt5">Enter your fullname along with your password <br></br> correctly to be processed</p>
-        <div>
-          <Input
-            text={'Fullname'}
-            handleChange={handleChange}
-            name={'fullname'}
-            value={fullname}
-          />
-          <div className="pb-3"></div>
-          <PasswordInput text={"Your password"} handleChange={handlePasswordChange} name={"password"} value={password} />
-          <div className='mt-10'></div>
-          <Button
-            text={processing ? "Processing..." : "Delete your account"} 
-            handleClick={(!processing && confirm) ? deleteAccountHandler : () => {}} 
-            isActive={!processing && confirm}
-          />
-        </div>
-        {success && (
-          <p className="text-green-500 text-base pt-4 pb-4">Delete account successfully. Goodbye!</p>
-        )}
-        {error && <p className="text-red-500 pt-4">{error}</p>}
+      <div 
+        ref={contentRef} 
+        className="flex flex-col justify-center items-center bg-primary w-[500px] min-h-[400px] p-8 rounded-3xl shadow-2xl border-t-4 border-blueColor"
+      >
+        {renderContent()}
+        {error && <p className="text-red-500 pt-4 text-center">{error}</p>}
       </div>
     </div>
   );

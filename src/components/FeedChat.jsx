@@ -33,7 +33,7 @@ const FeedChat = ({ feed, friend, user, createdAt, senderId}) => {
         alt={feed.description}
         className="mt-2 rounded-[25px]"
       />
-      <div className="absolute px-2 py-1 rounded-3xl bg-[#8F9089] bg-opacity-60 flex space-x-1 top-2 left-3 items-center">
+      {/* <div className="absolute px-2 py-1 rounded-3xl bg-[#8F9089] bg-opacity-60 flex space-x-1 top-2 left-3 items-center">
         <img
           className="w-5 h-5 rounded-full"
           src={
@@ -45,7 +45,7 @@ const FeedChat = ({ feed, friend, user, createdAt, senderId}) => {
         <p className="text-xs">
           {senderId=== user._id ? "You" : friend.friendFullname}
         </p>
-      </div>
+      </div> */}
       <div className="absolute rounded-3xl bg-[#8F9089] bg-opacity-60 top-2 right-3 py-1 px-2">
         <p className="text-xs">{formatTime(feed.createdAt)}</p>
       </div>

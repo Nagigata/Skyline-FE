@@ -27,7 +27,7 @@ const AcceptButton = ({ clickHandler }) => {
       onClick={clickHandler}
       className="cursor-pointer w-7 h-7 flex justify-center items-center bg-blueColor rounded-full"
     >
-      <img className="w-5 h-5" src="/public/assets/images/accept.png" />
+      <img className="w-5 h-5" src="assets/images/accept.png" />
     </div>
   );
 };

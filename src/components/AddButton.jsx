@@ -27,7 +27,7 @@ const AddButton = ({ clickHandler }) => {
       onClick={clickHandler}
       className="cursor-pointer w-7 h-7 flex justify-center items-center bg-blueColor rounded-full"
     >
-      <img className="w-6 h-5" src="/public/assets/images/add.png" />
+      <img className="w-6 h-5" src="assets/images/add.png" />
     </div>
   );
 };

@@ -4,10 +4,8 @@ import Auth from "./pages/Auth";
 import MainPage from "./pages/MainPage";
 import LandingPage from "./components/AddFriend";
 import Cookies from "js-cookie";
-import IO from "socket.io-client";
 import { useSearchParams } from "react-router-dom";
 
-const socket = IO("https://skn7vgp9-10005.asse.devtunnels.ms");
 
 function App() {
   const [searchParams] = useSearchParams();
@@ -84,83 +82,9 @@ function App() {
     })();
   }, [auth, justSignIn]);
 
-  useEffect(() => {
-    if (chat && user) {
-      const handleSocketEvent = async (data) => {
-        //if don't load user and chat yet => cancel
-        if (!user || !chat) return;
-        console.log(data);
-        //check action
-        if (data.action === "sent") {
-          const infor = data.data;
-          //check user is receiver
-          if (user._id !== infor.receiverId) return;
-          //set new message from friend
-          setChat((chat) => {
-            return chat.map((friendChat) => {
-              if (friendChat.friendId === infor.senderId) {
-                friendChat.conversation.push(infor.message);
-              }
-              return friendChat;
-            });
-          });
-        } else {
-          return;
-        }
-      };
+  
 
-      // Đăng ký sự kiện khi component mount
-      socket.on("message", handleSocketEvent);
-
-      // Hủy đăng ký sự kiện khi component unmount
-      return () => {
-        socket.off("message", handleSocketEvent);
-      };
-    }
-  }, [chat, user]);
-
-  useEffect(() => {
-    if (user && signInKey) {
-      const handleSocketEvent = async (data) => {
-        if (!user) return;
-        console.log(data);
-        if (data.action === "friend") {
-          if (data.userId !== user._id) {
-            return;
-          }
-        } else if (data.action === "user") {
-          if (!data.userList.some((i) => i.toString() === user._id)) {
-            return;
-          }
-        } else if (data.action === "accept friend") {
-          if (!data.userList.some((i) => i.toString() === user._id)) {
-            return;
-          }
-        } else {
-          return;
-        }
-        try {
-          const gotUser = await getUserInfor();
-          setUser(gotUser);
-          if (data.action === "accept friend") {
-            console.log("hehe");
-            const gotChat = await getChat();
-            setChat(gotChat);
-          }
-        } catch (error) {
-          console.log(error);
-        }
-      };
-
-      // Đăng ký sự kiện khi component mount
-      socket.on("user", handleSocketEvent);
-
-      // Hủy đăng ký sự kiện khi component unmount
-      return () => {
-        socket.off("user", handleSocketEvent);
-      };
-    }
-  }, [user, signInKey]);
+  
 
   const hasLandingParams = Boolean(
     searchParams.get("_id") &&

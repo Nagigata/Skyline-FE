@@ -7,6 +7,7 @@ import AcceptButton from "../../components/AcceptButton";
 import Popup from "../../components/Popup";
 import { useFriendSocket } from "../../hooks/useFriendSocket";
 import { useProfileSocket } from "../../hooks/useProfileSocket";
+
 const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
   const [showPopup, setShowPopup] = useState(false);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
@@ -18,10 +19,21 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
   const sentInviteDivRef = useRef(null);
 
   const numberOfFriends = user.friendList.length;
-  const numberOfInvites = user.friendInvites.length;
-  //const numberOfSentInvites = user.sentInviteList.length;
+
+  // Lọc received invites và sent invites
+  const receivedInvites = user.friendInvites.filter(
+    (invite) => invite.sender._id !== user._id
+  );
+  const sentInvites = user.friendInvites.filter(
+    (invite) => invite.sender._id === user._id
+  );
+
+  const numberOfReceivedInvites = receivedInvites.length;
+  const numberOfSentInvites = sentInvites.length;
+
   useFriendSocket({ user, setUser });
   useProfileSocket({ user, setUser });
+
   const friendList = user.friendList.map((friend) => (
     <div key={friend._id.toString()} className="relative">
       <SmallProfileBar user={friend} />
@@ -31,7 +43,7 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
     </div>
   ));
 
-  const inviteList = user.friendInvites.map((invite) => (
+  const receivedInviteList = receivedInvites.map((invite) => (
     <div key={invite._id.toString()} className="relative">
       <SmallProfileBar user={invite.sender} />
       <div className="ml-5 absolute right-2 top-[7px] flex">
@@ -44,14 +56,11 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
     </div>
   ));
 
-  // const sentInviteList = user.sentInviteList.map((invite) => (
-  //   <div key={invite._id.toString()} className="relative">
-  //     <SmallProfileBar user={invite} />
-  //     <div className="ml-5 absolute right-2 top-[7px]">
-  //       <DeleteButton clickHandler={() => handleRemoveSentInvite(invite._id)} />
-  //     </div>
-  //   </div>
-  // ));
+  const sentInviteList = sentInvites.map((invite) => (
+    <div key={invite._id.toString()} className="relative">
+      <SmallProfileBar user={invite.receiver} />
+    </div>
+  ));
 
   useEffect(() => {
     const tl = gsap.timeline();
@@ -239,26 +248,26 @@ const UserProfile = ({ user, setUser, signInKey, setLoading }) => {
           <div className="flex flex-col space-y-6">
             <div
               ref={receivedInviteDivRef}
-              className="lg:w-[450px] md:w-[335px] h-[600px] flex flex-col justify-start items-center rounded-3xl bg-primary"
+              className="lg:w-[450px] md:w-[335px] h-[288px] flex flex-col justify-start items-center rounded-3xl bg-primary"
             >
               <p className="text-blueColor text-base semibold mt-4">
-                {numberOfInvites} Received invites
+                {numberOfReceivedInvites} Received invites
               </p>
               <div className="flex flex-col items-center flex-start space-y-2 w-full h-full overflow-y-auto p-2">
-                {inviteList}
+                {receivedInviteList}
               </div>
             </div>
-            {/* <div
+            <div
               ref={sentInviteDivRef}
               className="lg:w-[450px] md:w-[335px] h-[288px] flex flex-col justify-start items-center rounded-3xl bg-primary"
             >
-              <p className="text-yellow-600 text-base semibold mt-4">
+              <p className="text-blueColor text-base semibold mt-4">
                 {numberOfSentInvites} Sent invites
               </p>
               <div className="flex flex-col items-center flex-start space-y-2 w-full h-full overflow-y-auto p-2">
                 {sentInviteList}
               </div>
-            </div> */}
+            </div>
           </div>
         </div>
       </div>

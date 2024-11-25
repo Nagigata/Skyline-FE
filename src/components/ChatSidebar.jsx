@@ -21,8 +21,6 @@ const ChatSidebar = ({ chat, selectedFriendId, setSelectedFriendId, user }) => {
     const lastMessage =
       friendChat.conversation[friendChat.conversation.length - 1];
 
-    console.log(friendChat.friendId);
-    console.log(user.friendList);
     return {
       imageUrl: friend.profileImageUrl,
       fullname: friend.fullname,
@@ -31,13 +29,23 @@ const ChatSidebar = ({ chat, selectedFriendId, setSelectedFriendId, user }) => {
     };
   };
 
+  const sortedChat = [...chat].sort((a, b) => {
+    const aLastMessage = a.conversation[a.conversation.length - 1];
+    const bLastMessage = b.conversation[b.conversation.length - 1];
+    
+    if (!aLastMessage) return 1;
+    if (!bLastMessage) return -1;
+    
+    return new Date(bLastMessage.createdAt) - new Date(aLastMessage.createdAt);
+  });
+
   return (
     <div className="h-[calc(100vh_-_60px)] max-h-[calc(100vh_-_60px)] w-[250px] max-w-[250px] bg-zinc-900">
       <div className="flex items-center h-[50px]">
         <p className="text-[18px] text-gray pl-[20px] semibold">Chats</p>
       </div>
       <div className="h-[calc(100vh_-_110px)] max-h-[calc(100vh_-_60px)] w-[250px] max-w-[250px] overflow-hidden overflow-y-auto flex flex-col justify-start items-center p-2 pl-[20px]">
-        {chat.map((friendChat) => {
+        {sortedChat.map((friendChat) => {
           const details = getMessageDetails(friendChat);
 
           return (

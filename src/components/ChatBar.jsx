@@ -54,14 +54,14 @@ const ChatBar = ({ message, setMessage, sendMessage, sending }) => {
             <img
               ref={loadingRef}
               className="w-6"
-              src={"/public/assets/images/loadingCircle.png"}
+              src={"assets/images/loadingCircle.png"}
               alt="loading"
             />
           ) : (
             <img
               ref={loadingRef}
               className="w-6"
-              src={"/public/assets/images/send.png"}
+              src={"assets/images/send.png"}
               alt="send"
             />
           )

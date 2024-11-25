@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import Logo from "../../components/Logo";
+import Input from "../../components/Input";
 import PasswordInput from "../../components/PasswordInput";
 import Button from "../../components/Button";
 import gsap from "gsap";
@@ -13,10 +14,10 @@ const validatePassword = (password) => {
 const ChangePassword = ({
   verifiedEmail,
   handleBackClick,
-  verificationCode,
 }) => {
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
+  const [code, setCode] = useState("");
   const [isValid, setIsValid] = useState(false);
   const [error, setError] = useState("");
   const [isSuccessfully, setIsSuccessfully] = useState(false);
@@ -30,7 +31,11 @@ const ChangePassword = ({
   }, []);
 
   const checkValid = () => {
-    if (validatePassword(password) && password === confirmPassword) {
+    if (
+      validatePassword(password) && 
+      password === confirmPassword && 
+      code.trim().length > 0
+    ) {
       setIsValid(true);
     } else {
       setIsValid(false);
@@ -39,7 +44,7 @@ const ChangePassword = ({
 
   useEffect(() => {
     checkValid();
-  }, [password, confirmPassword]);
+  }, [password, confirmPassword, code]);
 
   const handlePasswordChange = (event) => {
     setPassword(event.target.value);
@@ -47,6 +52,10 @@ const ChangePassword = ({
 
   const handleConfirmPasswordChange = (event) => {
     setConfirmPassword(event.target.value);
+  };
+
+  const handleCodeChange = (event) => {
+    setCode(event.target.value);
   };
 
   const handleClick = async () => {
@@ -64,11 +73,13 @@ const ChangePassword = ({
           body: JSON.stringify({
             email: verifiedEmail,
             password: password,
-            code: verificationCode,
+            code: parseInt(code, 10),
           }),
         }
       );
+
       const data = await response.json();
+
       if (!response.ok) {
         if (response.status === 400) {
           if (Array.isArray(data.message)) {
@@ -76,9 +87,7 @@ const ChangePassword = ({
           } else if (data.message === "Incorrect Resource") {
             setError("Invalid verification code.");
           } else if (data.message === "Expired Resource") {
-            setError(
-              "Verification code has expired. Please request a new one."
-            );
+            setError("Verification code has expired. Please request a new one.");
           } else {
             setError(data.message || "Invalid request.");
           }
@@ -130,6 +139,18 @@ const ChangePassword = ({
             name={"confirmPassword"}
             value={confirmPassword}
           />
+        </div>
+        <div className="mt-2">
+          <p className="text-left text-gray text-sm ml-2 pb-1">Code</p>
+          <Input
+            text={"Verification Code"}
+            handleChange={handleCodeChange}
+            name={"code"}
+            value={code}
+          />
+          <p className="text-left text-zinc-500 text-xs ml-2 pt-2">
+            Code has been sent to {verifiedEmail}
+          </p>
         </div>
         <p className="pt-3 text-xs text-zinc-600 pb-10">
           Your password must have at least 8 characters, including <br />

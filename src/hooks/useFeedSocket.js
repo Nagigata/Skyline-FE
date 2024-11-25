@@ -5,6 +5,35 @@ export const useFeedSocket = ({ user, feeds, setFeeds }) => {
   useEffect(() => {
     if (!socket || !user) return;
 
+    const handleCreateFeed = ({ userId, metadata }) => {
+      // Check if user is in the userId array (friend list) and visibility list
+      if (userId.includes(user._id) && metadata.visibility.includes(user._id)) {
+        const {
+          _id,
+          description,
+          imageUrl,
+          userId: feedOwner,
+          createdAt
+        } = metadata;
+
+        // Create simplified feed object with only needed information
+        const simplifiedFeed = {
+          _id,
+          description,
+          imageUrl,
+          createdAt,
+          userId: {
+            _id: feedOwner._id,
+            fullname: feedOwner.fullname,
+            profileImageUrl: feedOwner.profileImageUrl
+          }
+        };
+
+        // Add new feed to the beginning of the feeds array
+        setFeeds(prevFeeds => [simplifiedFeed, ...prevFeeds]);
+      }
+    };
+
     const handleUpdateFeed = ({ userId, metadata }) => {
       // Check if user is in the userId array (friend list)
       if (userId.includes(user._id) && metadata.visibility.includes(user._id)) {
@@ -88,12 +117,14 @@ export const useFeedSocket = ({ user, feeds, setFeeds }) => {
     };
 
     // Subscribe to socket events
+    socket.on("create_feed", handleCreateFeed);
     socket.on("update_feed", handleUpdateFeed);
     socket.on("delete_feed", handleDeleteFeed);
     socket.on("react_feed", handleReactFeed);
 
     // Cleanup function
     return () => {
+      socket.off("create_feed", handleCreateFeed);
       socket.off("update_feed", handleUpdateFeed);
       socket.off("delete_feed", handleDeleteFeed);
       socket.off("react_feed", handleReactFeed);

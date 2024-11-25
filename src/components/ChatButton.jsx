@@ -33,7 +33,7 @@ const ChatButton = ({ numberOfNewMessage, clickHandler, isLoadingChat }) => {
           <p className="text-white text-[10px]">{numberOfNewMessage}</p>
         </div>
       )}
-      <img className="w-7" src={"/public/assets/images/chat.png"} />
+      <img className="w-7" src={"assets/images/chat.png"} />
     </div>
   );
 };

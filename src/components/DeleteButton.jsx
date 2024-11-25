@@ -23,7 +23,7 @@ const DeleteButton = ({clickHandler}) => {
 }, [])
   return (
     <div ref={buttonRef} onClick={clickHandler} className='cursor-pointer w-7 h-7 flex justify-center items-center bg-yellow-500 rounded-full'>
-        <img className='w-5 h-5' src='/public/assets/images/delete.png'/>
+        <img className='w-5 h-5' src='assets/images/delete.png'/>
     </div>
   )
 }

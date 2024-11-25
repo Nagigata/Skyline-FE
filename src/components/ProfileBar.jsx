@@ -44,7 +44,7 @@ const ProfileBar = ({ user }) => {
           <div className="flex items-center">
             <img
               className="w-4 mr-2"
-              src="/public/assets/images/email.png"
+              src="assets/images/email.png"
               alt="email"
             />
             <p>{user.email}</p>
@@ -52,14 +52,14 @@ const ProfileBar = ({ user }) => {
           <div className="flex items-start">
             <img
               className="w-4 mr-2"
-              src="/public/assets/images/birthday.png"
+              src="assets/images/birthday.png"
               alt="birthday"
             />
             <p>{user.birthday}</p>
             <div className="flex items-center ml-6">
               <img
                 className="w-4 mr-2"
-                src="/public/assets/images/country.png"
+                src="assets/images/country.png"
                 alt="birthday"
               />
               <p>{user.country}</p>

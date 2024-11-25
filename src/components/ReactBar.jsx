@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import SmallTakePhotoButton from "./SmallTakePhotoButton";
 import Button from "./Button";
+import LoadingIcon from "./LoadingIcon";
 
 const ReactBar = ({
   handleTakePhotoBtn,
@@ -27,24 +28,10 @@ const ReactBar = ({
   const wowRef = useRef(null);
   const sadRef = useRef(null);
   const angryRef = useRef(null);
-  const loadingRef = useRef(null);
 
   const [hovered, setHovered] = useState(false);
 
-  useEffect(() => {
-    if (sendingComment && loadingRef.current) {
-      const tween = gsap.to(loadingRef.current, {
-        rotation: 360,
-        duration: 1,
-        repeat: -1,
-        ease: "linear",
-      });
 
-      return () => {
-        tween.kill(); // Stop the animation when the component unmounts or sendingComment becomes false
-      };
-    }
-  }, [sendingComment]);
 
   const isIconReacted = (icon) => {
     const reaction = feed?.reactions?.find(
@@ -112,7 +99,7 @@ const ReactBar = ({
               <img
                 ref={likeRef}
                 className="w-8 -translate-y-[3px]"
-                src="/public/assets/images/like.png"
+                src="assets/images/like.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.like}
@@ -133,7 +120,7 @@ const ReactBar = ({
               <img
                 ref={loveRef}
                 className="w-8"
-                src="/public/assets/images/love.png"
+                src="assets/images/love.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.love}
@@ -154,7 +141,7 @@ const ReactBar = ({
               <img
                 ref={hahaRef}
                 className="w-8"
-                src="/public/assets/images/haha.png"
+                src="assets/images/haha.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.haha}
@@ -175,7 +162,7 @@ const ReactBar = ({
               <img
                 ref={wowRef}
                 className="w-8"
-                src="/public/assets/images/wow.png"
+                src="assets/images/wow.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.wow}
@@ -196,7 +183,7 @@ const ReactBar = ({
               <img
                 ref={sadRef}
                 className="w-8"
-                src="/public/assets/images/sad.png"
+                src="assets/images/sad.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.sad}
@@ -217,7 +204,7 @@ const ReactBar = ({
               <img
                 ref={angryRef}
                 className="w-8"
-                src="/public/assets/images/angry.png"
+                src="assets/images/angry.png"
               />
               <p className="text-gray text-sm bold">
                 {feed?.reactionStatistic?.angry}
@@ -227,7 +214,7 @@ const ReactBar = ({
           {!isEditable && (
             <Button
               text={
-                <img src="/public/assets/images/comment.png" className="h-6" />
+                <img src="assets/images/comment.png" className="h-6" />
               }
               handleClick={() => {
                 setIsCommenting((oldV) => !oldV);
@@ -241,7 +228,7 @@ const ReactBar = ({
               text={
                 <img
                   className="w-5 mx-[1px]"
-                  src="/public/assets/images/report.png"
+                  src="assets/images/report.png"
                 />
               }
               handleClick={() => handleReportClick(feed)}
@@ -261,7 +248,7 @@ const ReactBar = ({
           />
           <Button
             text={
-              <img className="w-5" src="/public/assets/images/cancel.png" />
+              <img className="w-5" src="assets/images/cancel.png" />
             }
             isActive={true}
             handleClick={() => {
@@ -272,13 +259,9 @@ const ReactBar = ({
           <Button
             text={
               sendingComment ? (
-                <img
-                  ref={loadingRef}
-                  className="w-7"
-                  src="/public/assets/images/loadingCircle.png"
-                />
+                <LoadingIcon />
               ) : (
-                <img className="w-7" src="/public/assets/images/send.png" />
+                <img className="w-7" src="assets/images/send.png" />
               )
             }
             isActive={true}
@@ -324,7 +307,7 @@ const ReactBar = ({
                       <img
                         key={`${reaction._id}-${iconIndex}`}
                         className="w-4 h-4"
-                        src={`/public/assets/images/${icon}.png`}
+                        src={`assets/images/${icon}.png`}
                         alt={icon}
                         title={icon}
                       />
@@ -333,7 +316,7 @@ const ReactBar = ({
                     // Handle single icon
                     <img
                       className="w-4 h-4"
-                      src={`/public/assets/images/${reaction.icon}.png`}
+                      src={`assets/images/${reaction.icon}.png`}
                       alt={reaction.icon}
                       title={reaction.icon}
                     />
@@ -353,8 +336,8 @@ const ReactBar = ({
                 className={`w-5 ${!editing && "ml-1"}`}
                 src={
                   editing
-                    ? "/public/assets/images/cancel.png"
-                    : "/public/assets/images/edit.png"
+                    ? "assets/images/cancel.png"
+                    : "assets/images/edit.png"
                 }
               />
             }
@@ -379,8 +362,8 @@ const ReactBar = ({
                 className={`w-5 mx-[2px]`}
                 src={
                   editing
-                    ? "/public/assets/images/accept.png"
-                    : "/public/assets/images/delete.png"
+                    ? "assets/images/accept.png"
+                    : "assets/images/delete.png"
                 }
               />
             }

@@ -128,7 +128,7 @@ const ImageFromCamera = ({ user, setUser, signInKey, setPage }) => {
                 ) : (
                   <img
                     style={{ padding: "0px 20px", width: "73px" }}
-                    src="/public/assets/images/send.png"
+                    src="assets/images/send.png"
                   />
                 )
               }
@@ -139,7 +139,7 @@ const ImageFromCamera = ({ user, setUser, signInKey, setPage }) => {
               text={
                 <img
                   style={{ padding: "0px 20px", width: "70px" }}
-                  src="/public/assets/images/retake.png"
+                  src="assets/images/retake.png"
                 />
               }
               handleClick={handleRetakePhoto}
@@ -155,7 +155,7 @@ const ImageFromCamera = ({ user, setUser, signInKey, setPage }) => {
               text={
                 <img
                   style={{ padding: "0px 20px", width: "70px" }}
-                  src="/public/assets/images/album.png"
+                  src="assets/images/album.png"
                 />
               }
             />
@@ -261,6 +261,9 @@ const ImageFromDevice = ({ user, setUser, signInKey, setPage }) => {
       setCompletedCrop(null);
       setCrop({ aspect: 1 });
       setProcess(false);
+      // setTimeout(() => {
+      //   window.location.reload();
+      // }, 3000);
     } else {
       console.error(data.message || "Failed to save photo");
     }
@@ -315,7 +318,7 @@ const ImageFromDevice = ({ user, setUser, signInKey, setPage }) => {
             text={
               <img
                 style={{ padding: "0px 20px", width: "73px" }}
-                src="/public/assets/images/album.png"
+                src="assets/images/album.png"
               />
             }
           />
@@ -325,7 +328,7 @@ const ImageFromDevice = ({ user, setUser, signInKey, setPage }) => {
             text={
               <img
                 style={{ padding: "0px 20px", width: "73px" }}
-                src="/public/assets/images/camera.png"
+                src="assets/images/camera.png"
               />
             }
           />
@@ -339,7 +342,7 @@ const ImageFromDevice = ({ user, setUser, signInKey, setPage }) => {
                 ) : (
                   <img
                     style={{ padding: "0px 20px", width: "73px" }}
-                    src="/public/assets/images/send.png"
+                    src="assets/images/send.png"
                   />
                 )
               }

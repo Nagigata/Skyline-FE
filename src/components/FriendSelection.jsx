@@ -46,7 +46,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
         <img
           ref={imgRef}
           className="w-3 ml-2 mt-[2px]"
-          src={"/public/assets/images/arrow.png"}
+          src={"assets/images/arrow.png"}
           alt="Arrow"
         />
       </div>
@@ -68,7 +68,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                 <div className="flex items-center ml-2">
                   <img
                     className="w-8 h-8 rounded-full mr-4"
-                    src={"/public/assets/images/friend.png"}
+                    src={"assets/images/friend.png"}
                     alt="Everyone"
                   />
                   <p className="text-gray medium text-[13px] truncate w-[calc(100% - 100px)]">
@@ -76,7 +76,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                   </p>
                 </div>
                 <img
-                  src="/public/assets/images/right-arrow.png"
+                  src="assets/images/right-arrow.png"
                   className="w-2 mt-[2px] mr-3"
                 />
               </li>
@@ -104,7 +104,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                   </p>
                 </div>
                 <img
-                  src="/public/assets/images/right-arrow.png"
+                  src="assets/images/right-arrow.png"
                   className="w-2 mt-[2px] mr-3"
                 />
               </li>
@@ -134,7 +134,7 @@ const FriendSelection = ({ user, selectedUser, setSelectedUser }) => {
                       </p>
                     </div>
                     <img
-                      src="/public/assets/images/right-arrow.png"
+                      src="assets/images/right-arrow.png"
                       className="w-2 mt-[2px] mr-3"
                     />
                   </li>

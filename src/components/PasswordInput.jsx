@@ -17,7 +17,7 @@ export default function PasswordInput({ text, handleChange, name, value }) {
         autoComplete="off"
       />
       <img 
-        src={show ? '/public/assets/images/open-eye.png' : '/public/assets/images/close-eye.png'} 
+        src={show ? 'assets/images/open-eye.png' : 'assets/images/close-eye.png'} 
         onClick={() => setShow(prevValue => !prevValue)} 
         className={`absolute right-3 cursor-pointer transition-opacity w-5 ${show ? "top-4" : "top-5"}`}
         alt="Toggle visibility"

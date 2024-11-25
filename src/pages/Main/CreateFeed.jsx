@@ -22,6 +22,7 @@ const ImageFromCamera = ({
   const [process, setProcess] = useState(false);
   const [description, setDescription] = useState("");
   const [sendTo, setSendTo] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   useEffect(() => {
     if (turnOffCamera === true) {
@@ -109,6 +110,9 @@ const ImageFromCamera = ({
               setError("");
               await handleReloadFeeds();
             } else {
+              if (data.message == "description should not be empty") {
+                setShowPopup(true);
+              }
               setError(data.message || "Failed to save photo");
             }
 
@@ -159,7 +163,7 @@ const ImageFromCamera = ({
           <div className="absolute z-0 inset-0 rounded-[80px] border-[1px] border-blueColor overflow-hidden">
             {turnOffCamera ? (
               <img
-                src={"/public/assets/images/noneCamera.png"}
+                src={"assets/images/noneCamera.png"}
                 alt="Avatar Preview"
                 className="w-full h-full object-cover"
                 style={{ transform: "scaleX(-1)" }}
@@ -192,7 +196,6 @@ const ImageFromCamera = ({
             </div>
           )}
         </div>
-        {error && <p className="text-red-500 mt-4">{error}</p>}
         {photoTaken ? (
           <div>
             <div className="mt-16 flex justify-center space-x-5 items-center">
@@ -204,7 +207,7 @@ const ImageFromCamera = ({
                   ) : (
                     <img
                       style={{ padding: "0px 20px", width: "73px" }}
-                      src="/public/assets/images/send.png"
+                      src="assets/images/send.png"
                     />
                   )
                 }
@@ -215,7 +218,7 @@ const ImageFromCamera = ({
                 text={
                   <img
                     style={{ padding: "0px 20px", width: "70px" }}
-                    src="/public/assets/images/retake.png"
+                    src="assets/images/retake.png"
                   />
                 }
                 handleClick={handleRetakePhoto}
@@ -227,7 +230,7 @@ const ImageFromCamera = ({
                   key={-1}
                   user={{
                     fullname: "All",
-                    profileImageUrl: "/public/assets/images/friend.png",
+                    profileImageUrl: "assets/images/friend.png",
                   }}
                   isActive={sendTo.length === 0 ? true : false}
                 />
@@ -256,7 +259,7 @@ const ImageFromCamera = ({
               text={
                 <img
                   style={{ padding: "0px 20px", width: "70px" }}
-                  src="/public/assets/images/album.png"
+                  src="assets/images/album.png"
                 />
               }
             />
@@ -265,6 +268,24 @@ const ImageFromCamera = ({
           </div>
         )}
       </div>
+      {showPopup && (
+        <div className="z-20">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-primary bg-opacity-75">
+            <div className="bg-primary rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-blueColor ">
+              <p className="mt-8 mb-4 text-gray bold text-lg">
+                Description cannot be empty
+              </p>
+              <div className="mt-14 flex justify-center items-center space-x-4">
+                <Button
+                  text={"OK, I understand"}
+                  isActive={true}
+                  handleClick={() => setShowPopup(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -283,6 +304,7 @@ const ImageFromDevice = ({
   const [windowWidth, setWindowWidth] = useState(window.innerWidth);
   const [description, setDescription] = useState("");
   const [sendTo, setSendTo] = useState([]);
+  const [showPopup, setShowPopup] = useState(false);
 
   const fileInputRef = useRef(null);
   const imgRef = useRef(null);
@@ -417,6 +439,9 @@ const ImageFromDevice = ({
         reinitState();
         await handleReloadFeeds();
       } else {
+        if (data.message == "description should not be empty") {
+          setShowPopup(true);
+        }
         throw new Error(data.message || "Failed to save photo");
       }
     } catch (error) {
@@ -486,7 +511,7 @@ const ImageFromDevice = ({
             text={
               <img
                 style={{ padding: "0px 20px", width: "73px" }}
-                src="/public/assets/images/album.png"
+                src="assets/images/album.png"
               />
             }
           />
@@ -496,7 +521,7 @@ const ImageFromDevice = ({
             text={
               <img
                 style={{ padding: "0px 20px", width: "73px" }}
-                src="/public/assets/images/camera.png"
+                src="assets/images/camera.png"
               />
             }
           />
@@ -510,7 +535,7 @@ const ImageFromDevice = ({
                 ) : (
                   <img
                     style={{ padding: "0px 20px", width: "73px" }}
-                    src="/public/assets/images/send.png"
+                    src="assets/images/send.png"
                   />
                 )
               }
@@ -524,7 +549,7 @@ const ImageFromDevice = ({
                 key={-1}
                 user={{
                   fullname: "All",
-                  profileImageUrl: "/public/assets/images/friend.png",
+                  profileImageUrl: "assets/images/friend.png",
                 }}
                 isActive={sendTo.length === 0 ? true : false}
               />
@@ -544,6 +569,24 @@ const ImageFromDevice = ({
           </div>
         )}
       </div>
+      {showPopup && (
+        <div className="z-20">
+          <div className="fixed inset-0 flex items-center justify-center z-50 bg-primary bg-opacity-75">
+            <div className="bg-primary rounded-3xl w-[400px] h-[200px] bg-opacity-1 shadow-2xl shadow-blueColor ">
+              <p className="mt-8 mb-4 text-gray bold text-lg">
+                Description cannot be empty
+              </p>
+              <div className="mt-14 flex justify-center items-center space-x-4">
+                <Button
+                  text={"OK, I understand"}
+                  isActive={true}
+                  handleClick={() => setShowPopup(false)}
+                />
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

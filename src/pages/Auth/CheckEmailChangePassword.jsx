@@ -72,7 +72,6 @@ function Email({ setCode, handleBackClick, setEmail, email }) {
           setError(data.message || "An unknown error occurred.");
         }
       } else {
-        // Assume code will be provided in verification step
         setCode(true);
       }
     } catch (error) {
@@ -133,63 +132,6 @@ function Email({ setCode, handleBackClick, setEmail, email }) {
   );
 }
 
-function Code({ code, setAuth, setCode, email, setVerifiedEmail }) {
-  const [enteredCode, setEnteredCode] = useState("");
-  const [error, setError] = useState("");
-
-  const contentRef = useRef(null);
-
-  useEffect(() => {
-    const content = contentRef.current;
-    gsap.fromTo(content, { opacity: 0 }, { opacity: 1, duration: 1, delay: 1 });
-  }, []);
-
-  const handleClick = async () => {
-    setError("");
-    setVerifiedEmail(email);
-    if (setAuth) setAuth(true);
-  };
-
-  const handleChange = (event) => {
-    const code = event.target.value;
-    setEnteredCode(code);
-  };
-
-  const handleBackClick = () => {
-    setCode(null);
-  };
-
-  return (
-    <div className="bg-black flex flex-col w-full pt-10 border-t-4 border-yellow-500 rounded-lg">
-      <Logo />
-      <div
-        ref={contentRef}
-        className="pt-40 flex flex-col items-center justify-center"
-      >
-        <p className="bold text-2xl pb-7 text-gray">Enter verification code</p>
-        <Input
-          text={"Verification code"}
-          handleChange={handleChange}
-          name={"code"}
-          value={enteredCode}
-        />
-        <p className="pt-20 text-xs text-zinc-600 pb-3">
-          We sent a verification code to your email, please check your inbox!
-        </p>
-        <div className="flex justify-center space-x-4">
-          <Button
-            text={"Verify code"}
-            handleClick={handleClick}
-            isActive={enteredCode.length > 0}
-          />
-          <Button text={"Back"} handleClick={handleBackClick} isActive={true} />
-        </div>
-        {error && <p className="text-red-500 pt-4">{error}</p>}
-      </div>
-    </div>
-  );
-}
-
 export default function CheckEmailChangePassword({
   handleBackClick,
   setAuth,
@@ -200,13 +142,10 @@ export default function CheckEmailChangePassword({
   return (
     <div>
       {code ? (
-        <Code
-          email={email}
-          setVerifiedEmail={setVerifiedEmail}
-          code={code}
-          setCode={setCode}
-          setAuth={setAuth}
-        />
+        (() => {
+          setVerifiedEmail(email);
+          if (setAuth) setAuth(true); 
+        })()
       ) : (
         <Email
           setEmail={setEmail}

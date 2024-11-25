@@ -64,8 +64,8 @@ const MainPage = ({
       {page === "main" && (
         <Main
           user={user}
-          signInKey={signInKey}
           setUser={setUser}
+          signInKey={signInKey}          
           signout={signout}
           setChat={setChat}
         />

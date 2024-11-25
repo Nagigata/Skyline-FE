@@ -47,6 +47,7 @@ const Infor = ({ verifiedEmail, setPage }) => {
       fullname.length !== 0 &&
       country.length !== 0 &&
       birthday !== null &&
+      code.trim().length > 0 &&
       validatePassword(password) &&
       password === confirmPassword
     ) {
@@ -160,17 +161,17 @@ const Infor = ({ verifiedEmail, setPage }) => {
           />
         </div>
         <div className="mt-2 w-80">
-          {" "}
-          {/* Added fixed width */}
           <p className="text-left text-gray text-sm ml-2 pb-1">Birthday</p>
           <div className="relative w-full">
-            {" "}
-            {/* Added container with relative positioning */}
             <DatePicker
+             label={"Birth date"} 
               value={birthday}
               onChange={setBirthday}
-              className="w-full bg-[#29282C] text-sm text-gray rounded-2xl p-1 focus:outline-none focus:ring-2 medium"
+              className="w-full bg-[#29282C] text-sm text-gray rounded-2xl focus:outline-none focus:ring-2  "
               placeholder="dd/mm/yyyy"
+              classNames={{
+                calendar: "bg-[#29282C]",
+              }}
             />
           </div>
         </div>

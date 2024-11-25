@@ -59,6 +59,7 @@ export const useProfileSocket = ({ user, setUser }) => {
         // Update in friend list
         const updatedFriendList = prevUser.friendList.map((friend) => {
           if (friend._id === userId) {
+            console.log(metadata.profileImageUrl)
             return {
               ...friend,
               profileImageUrl: metadata.profileImageUrl,

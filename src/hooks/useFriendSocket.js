@@ -6,7 +6,7 @@ export const useFriendSocket = ({ user, setUser }) => {
     if (!socket || !user) return;
 
     const handleSendInvite = ({ userId, metadata }) => {
-      if (userId === user._id) {
+      if (userId === user._id || metadata.sender._id === user._id) {
         setUser((prevUser) => ({
           ...prevUser,
           friendInvites: [
@@ -23,7 +23,7 @@ export const useFriendSocket = ({ user, setUser }) => {
     };
 
     const handleRemoveInvite = ({ userId, metadata }) => {
-      if (userId === user._id) {
+      if (userId === user._id || metadata.receiver._id === user._id) {
         setUser((prevUser) => ({
           ...prevUser,
           friendInvites: prevUser.friendInvites.filter(
@@ -35,17 +35,22 @@ export const useFriendSocket = ({ user, setUser }) => {
 
     const handleAcceptInvite = ({ userId, metadata }) => {
       if (userId === user._id) {
+        console.log(metadata);
         setUser((prevUser) => {
-          // Remove the invite
           const updatedInvites = prevUser.friendInvites.filter(
             (invite) => invite._id !== metadata.friendInviteId
           );
-
-          // Add new friend
+    
+          const newFriend = {
+            _id: metadata.friend._id,
+            fullname: metadata.friend.fullname.fullname,
+            profileImageUrl: metadata.friend.profileImageUrl
+          };
+    
           return {
             ...prevUser,
             friendInvites: updatedInvites,
-            friendList: [...prevUser.friendList, metadata.friend],
+            friendList: [...prevUser.friendList, newFriend],
           };
         });
       }

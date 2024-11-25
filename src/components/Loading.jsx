@@ -20,7 +20,7 @@ const PopupLoading = () => {
       <img
         ref={loadingRef}
         className="w-20"
-        src="/public/assets/images/loading.png"
+        src="assets/images/loading.png"
         alt="Loading"
       />
     </div>
