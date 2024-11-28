@@ -43,7 +43,7 @@ const Main = ({ user, setUser, signInKey, signout, setChat }) => {
   });
   const [turnOffCamera, setTurnOffCamera] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
-  
+
   useFeedSocket({ user, feeds, setFeeds });
   useChatSocket({ user, setChat });
   useFriendSocket({ user, setUser });
@@ -125,6 +125,10 @@ const Main = ({ user, setUser, signInKey, signout, setChat }) => {
   };
 
   const fetchFeeds = async (page) => {
+    console.log("Request details:", {
+      url:  `https://skn7vgp9-10000.asse.devtunnels.ms/api/feed/everyone?skip=${feeds.length}`,
+      signInKey,
+    });
     if (maxFeed === -1 && page >= feeds.length - 10 && !loading) {
       console.log(feeds.length);
       console.log(signInKey);

@@ -11,7 +11,7 @@ const GoogleLoginButton = ({
     onSuccess: async (response) => {
       setErrorMessage("");
       setIsLoading(true);
-
+      console.log(response.access_token)
       try {
         const res = await fetch(
           "https://skn7vgp9-10000.asse.devtunnels.ms/api/sign-in/google",
